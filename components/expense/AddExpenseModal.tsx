@@ -132,7 +132,7 @@ export function AddExpenseModal({ onClose, onSuccess }: Props) {
             marginBottom: "1rem",
             display: "flex",
             alignItems: "center",
-            justify: "space-between",
+            justifyContent: "space-between",
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>

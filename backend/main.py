@@ -40,14 +40,22 @@ app.include_router(reports_router)
 app.include_router(notifications_router)
 
 # ── CORS ───────────────────────────────────────────────────────────────────────
+cors_origins_env = os.getenv("CORS_ORIGINS", "")
 origins = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
 ]
+if cors_origins_env:
+    origins.extend([origin.strip() for origin in cors_origins_env.split(",") if origin.strip()])
+
+frontend_url = os.getenv("FRONTEND_URL")
+if frontend_url:
+    origins.append(frontend_url)
+    origins.append(frontend_url.rstrip("/"))
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=origins if origins else ["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
