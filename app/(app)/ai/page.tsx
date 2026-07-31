@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Send, Bot, Sparkles } from "lucide-react";
+import { API_BASE_URL } from "@/lib/config";
 
 interface Message {
   role: "user" | "assistant";
@@ -39,7 +40,7 @@ export default function AIPage() {
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:8000/ai/chat", {
+      const res = await fetch(`${API_BASE_URL}/ai/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

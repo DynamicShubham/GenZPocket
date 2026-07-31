@@ -14,6 +14,8 @@ const CATEGORIES = [
   { key: "OTHER", label: "📦 Other", cls: "chip chip-other chip-selectable" },
 ];
 
+import { API_BASE_URL } from "@/lib/config";
+
 interface Props {
   onClose: () => void;
   onSuccess?: () => void;
@@ -38,7 +40,7 @@ export function AddExpenseModal({ onClose, onSuccess }: Props) {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const res = await fetch("http://localhost:8000/expenses/ocr", {
+      const res = await fetch(`${API_BASE_URL}/expenses/ocr`, {
         method: "POST",
         body: formData,
         credentials: "include",
@@ -65,7 +67,7 @@ export function AddExpenseModal({ onClose, onSuccess }: Props) {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("http://localhost:8000/expenses", {
+      const res = await fetch(`${API_BASE_URL}/expenses`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
