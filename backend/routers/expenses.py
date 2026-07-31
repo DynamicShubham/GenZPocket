@@ -10,7 +10,7 @@ Endpoints:
     POST   /expenses/categorize - Auto-categorize a merchant name (utility)
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete, update, func, and_
 from datetime import date
@@ -22,8 +22,38 @@ from models import Expense, ExpenseCategory
 from schemas import ExpenseCreate, ExpenseResponse, ExpenseUpdate
 from auth.dependencies import get_current_user
 from services.categorization import auto_categorize
+from services.storage import save_receipt_file
+from services.ocr import process_receipt_ocr
 
 router = APIRouter(prefix="/expenses", tags=["Expenses"])
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# RECEIPT UPLOAD & OCR
+# ─────────────────────────────────────────────────────────────────────────────
+
+@router.post("/upload-receipt", response_model=dict)
+async def upload_receipt(
+    file: UploadFile = File(...),
+    user_id: str = Depends(get_current_user),
+):
+    """Upload a receipt image (R2 or local disk fallback) and return receipt_url."""
+    url = await save_receipt_file(file)
+    return {"receipt_url": url}
+
+
+@router.post("/ocr", response_model=dict)
+async def scan_receipt_ocr(
+    file: UploadFile = File(...),
+    user_id: str = Depends(get_current_user),
+):
+    """Run OCR scanner on receipt image and return extracted structured data."""
+    content = await file.read()
+    receipt_url = await save_receipt_file(file)
+    ocr_result = await process_receipt_ocr(content, filename=file.filename or "receipt.jpg")
+    ocr_result["receipt_url"] = receipt_url
+    return ocr_result
+
 
 
 # ─────────────────────────────────────────────────────────────────────────────

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { X } from "lucide-react";
+import { useState, useRef } from "react";
+import { X, Camera, UploadCloud } from "lucide-react";
 
 const CATEGORIES = [
   { key: "FOOD", label: "🍕 Food", cls: "chip chip-food chip-selectable" },
@@ -24,8 +24,37 @@ export function AddExpenseModal({ onClose, onSuccess }: Props) {
   const [merchant, setMerchant] = useState("");
   const [category, setCategory] = useState("");
   const [note, setNote] = useState("");
+  const [receiptUrl, setReceiptUrl] = useState("");
+  const [scanning, setScanning] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleReceiptScan = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setScanning(true);
+    setError("");
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("http://localhost:8000/expenses/ocr", {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to parse receipt image");
+      const data = await res.json();
+      if (data.amount) setAmount(data.amount.toString());
+      if (data.merchant) setMerchant(data.merchant);
+      if (data.category) setCategory(data.category);
+      if (data.receipt_url) setReceiptUrl(data.receipt_url);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Receipt OCR failed");
+    } finally {
+      setScanning(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,6 +120,43 @@ export function AddExpenseModal({ onClose, onSuccess }: Props) {
           <button className="btn-icon" onClick={onClose} aria-label="Close">
             <X size={18} strokeWidth={2.5} />
           </button>
+        </div>
+
+        {/* OCR Scan Banner */}
+        <div
+          style={{
+            border: "2px dashed var(--ink-black)",
+            borderRadius: "6px",
+            padding: "0.75rem",
+            background: "var(--accent-lilac, #f3e8ff)",
+            marginBottom: "1rem",
+            display: "flex",
+            alignItems: "center",
+            justify: "space-between",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <Camera size={20} />
+            <span style={{ fontSize: "0.875rem", fontWeight: 600 }}>
+              {scanning ? "Scanning Receipt OCR..." : "Scan Receipt to Auto-fill"}
+            </span>
+          </div>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            style={{ padding: "0.25rem 0.75rem", fontSize: "0.8rem" }}
+            onClick={() => fileInputRef.current?.click()}
+            disabled={scanning}
+          >
+            {scanning ? "Scanning..." : "Upload Receipt"}
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            style={{ display: "none" }}
+            onChange={handleReceiptScan}
+          />
         </div>
 
         <form onSubmit={handleSubmit} className="stack stack-md">
