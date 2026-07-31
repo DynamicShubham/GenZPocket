@@ -1,13 +1,19 @@
 import os
-# pyrefly: ignore [missing-import]
+import sys
 from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 
+# Ensure backend directory is in sys.path for clean imports
+backend_dir = Path(__file__).resolve().parent
+if str(backend_dir) not in sys.path:
+    sys.path.insert(0, str(backend_dir))
+
 # Load environment variables
-load_dotenv()
+load_dotenv(backend_dir / ".env")
+load_dotenv(backend_dir.parent / ".env.local")
 
 from routers.expenses import router as expenses_router
 from routers.budgets import router as budgets_router
