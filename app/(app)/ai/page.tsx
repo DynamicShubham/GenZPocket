@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Send, Bot, Sparkles } from "lucide-react";
+import posthog from "posthog-js";
 import { apiFetch } from "@/lib/api";
 
 interface Message {
@@ -47,6 +48,9 @@ export default function AIPage() {
       });
       if (!res.ok) throw new Error("AI unavailable");
       const data = await res.json();
+      posthog.capture("ai_message_sent", {
+        conversation_started: convId === null,
+      });
       setConvId(data.conversation_id);
       setMessages((prev) => [...prev, { role: "assistant", content: data.reply }]);
     } catch {

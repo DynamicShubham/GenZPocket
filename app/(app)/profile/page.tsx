@@ -1,6 +1,9 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { Flame, Download, BarChart2 } from "lucide-react";
+import posthog from "posthog-js";
+import { authClient } from "@/lib/auth-client";
 
 const MOCK_USER = {
   name: "Riya Sharma",
@@ -24,6 +27,14 @@ const MOCK_REPORT = {
 };
 
 export default function ProfilePage() {
+  const router = useRouter();
+
+  const handleSignOut = async () => {
+    await authClient.signOut();
+    posthog.reset();
+    router.push("/login");
+  };
+
   return (
     <div className="page animate-slide-up">
       {/* ── User Info ── */}
@@ -126,6 +137,7 @@ export default function ProfilePage() {
           <button
             key={label}
             id={`setting-${label.toLowerCase().replace(/\s/g, "-")}`}
+            onClick={label === "Sign Out" ? handleSignOut : undefined}
             style={{
               display: "flex", alignItems: "center", justifyContent: "space-between",
               width: "100%", padding: "0.875rem 0",

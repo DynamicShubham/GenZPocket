@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { X, Camera, UploadCloud } from "lucide-react";
+import posthog from "posthog-js";
 
 const CATEGORIES = [
   { key: "FOOD", label: "🍕 Food", cls: "chip chip-food chip-selectable" },
@@ -50,6 +51,10 @@ export function AddExpenseModal({ onClose, onSuccess }: Props) {
       if (data.merchant) setMerchant(data.merchant);
       if (data.category) setCategory(data.category);
       if (data.receipt_url) setReceiptUrl(data.receipt_url);
+      posthog.capture("receipt_scanned", {
+        detected_category: data.category ?? "unknown",
+        amount_detected: Boolean(data.amount),
+      });
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Receipt OCR failed");
     } finally {
@@ -77,6 +82,11 @@ export function AddExpenseModal({ onClose, onSuccess }: Props) {
         }),
       });
       if (!res.ok) throw new Error("Failed to log expense");
+      posthog.capture("expense_created", {
+        category: category || "auto_categorized",
+        has_receipt: Boolean(receiptUrl),
+        has_note: Boolean(note),
+      });
       onSuccess?.();
       onClose();
     } catch (err: unknown) {
