@@ -45,6 +45,7 @@ cors_origins_env = os.getenv("CORS_ORIGINS", "")
 origins = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "https://genzpocket.vercel.app",
 ]
 if cors_origins_env:
     origins.extend([origin.strip() for origin in cors_origins_env.split(",") if origin.strip()])

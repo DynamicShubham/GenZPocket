@@ -14,7 +14,7 @@ const CATEGORIES = [
   { key: "OTHER", label: "📦 Other", cls: "chip chip-other chip-selectable" },
 ];
 
-import { API_BASE_URL } from "@/lib/config";
+import { apiFetch } from "@/lib/api";
 
 interface Props {
   onClose: () => void;
@@ -40,10 +40,9 @@ export function AddExpenseModal({ onClose, onSuccess }: Props) {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const res = await fetch(`${API_BASE_URL}/expenses/ocr`, {
+      const res = await apiFetch("/expenses/ocr", {
         method: "POST",
         body: formData,
-        credentials: "include",
       });
       if (!res.ok) throw new Error("Failed to parse receipt image");
       const data = await res.json();
@@ -67,10 +66,9 @@ export function AddExpenseModal({ onClose, onSuccess }: Props) {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(`${API_BASE_URL}/expenses`, {
+      const res = await apiFetch("/expenses", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify({
           amount: parseFloat(amount),
           merchant,

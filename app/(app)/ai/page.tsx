@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Send, Bot, Sparkles } from "lucide-react";
-import { API_BASE_URL } from "@/lib/config";
+import { apiFetch } from "@/lib/api";
 
 interface Message {
   role: "user" | "assistant";
@@ -40,10 +40,9 @@ export default function AIPage() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_BASE_URL}/ai/chat`, {
+      const res = await apiFetch("/ai/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify({ message: text, conversation_id: convId }),
       });
       if (!res.ok) throw new Error("AI unavailable");
