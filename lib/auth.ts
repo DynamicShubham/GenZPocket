@@ -1,11 +1,13 @@
 import { betterAuth } from "better-auth";
-import { DatabaseSync } from "node:sqlite";
-import path from "path";
-
-const dbPath = path.resolve(process.cwd(), "backend/genzpocket.db");
+import { Pool } from "pg";
 
 export const auth = betterAuth({
-  database: new DatabaseSync(dbPath),
+  database: new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+      rejectUnauthorized: false,
+    },
+  }),
   baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
   secret: process.env.BETTER_AUTH_SECRET,
   emailAndPassword: { enabled: true },
@@ -30,4 +32,3 @@ export const auth = betterAuth({
     } : {}),
   },
 });
-

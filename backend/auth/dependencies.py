@@ -15,7 +15,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text, select
 
-from database import get_db
+from backend.database import get_db
 
 # We use HTTPBearer but also accept the cookie "better-auth.session_token"
 _bearer = HTTPBearer(auto_error=False)
@@ -77,7 +77,7 @@ async def get_current_user(
     user_id, expires_at, name, email, image = row
 
     # ── 2. Check expiry ─────────────────────────────────────────────────
-    # Better Auth stores dates as ISO strings in SQLite
+    # Better Auth stores dates as ISO strings or timestamps in the database
     if isinstance(expires_at, str):
         try:
             expires_dt = datetime.fromisoformat(expires_at.replace("Z", "+00:00"))
@@ -116,7 +116,7 @@ async def get_current_user(
             "email": email,
             "name": name or "",
             "avatar_url": image or None,
-            "now": datetime.utcnow().isoformat(),
+            "now": datetime.now(timezone.utc).isoformat(),
         },
     )
     await db.commit()

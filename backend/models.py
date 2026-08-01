@@ -1,9 +1,12 @@
 import uuid
 import enum
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 from sqlalchemy import Column, String, Integer, Numeric, Date, DateTime, Boolean, ForeignKey, Enum, JSON
 from sqlalchemy.orm import relationship
 from database import Base
+
+def utc_now():
+    return datetime.now(timezone.utc)
 
 # ──────────────────────────────────────────────────────────────────────
 # ENUMS
@@ -53,8 +56,8 @@ class User(Base):
     streak = Column(Integer, default=0, nullable=False)
     last_logged_date = Column(Date, nullable=True)
 
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=utc_now, nullable=False)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now, nullable=False)
 
     # Relationships
     expenses = relationship("Expense", back_populates="user", cascade="all, delete-orphan")
@@ -81,7 +84,7 @@ class Expense(Base):
     is_recurring = Column(Boolean, default=False, nullable=False)
     receipt_url = Column(String(1024), nullable=True)
     
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=utc_now, nullable=False)
 
     # Relationships
     user = relationship("User", back_populates="expenses")
@@ -100,7 +103,7 @@ class Budget(Base):
     # category_limits will store dict of {CATEGORY_NAME: limit}
     category_limits = Column(JSON, nullable=True)
     
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=utc_now, nullable=False)
 
     # Relationships
     user = relationship("User", back_populates="budgets")
@@ -117,7 +120,7 @@ class SavingsGoal(Base):
     current_amount = Column(Numeric(12, 2), default=0.00, nullable=False)
     deadline = Column(Date, nullable=False)
     
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=utc_now, nullable=False)
 
     # Relationships
     user = relationship("User", back_populates="goals")
@@ -138,7 +141,7 @@ class RecurringExpense(Base):
     next_due_date = Column(Date, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
     
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=utc_now, nullable=False)
 
     # Relationships
     user = relationship("User", back_populates="recurring_expenses")
@@ -153,8 +156,8 @@ class AIConversation(Base):
     # JSON list of dicts: [{"role": "user", "content": "hello", "timestamp": "ISO-format"}]
     messages = Column(JSON, nullable=False, default=list)
     
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=utc_now, nullable=False)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now, nullable=False)
 
     # Relationships
     user = relationship("User", back_populates="conversations")
@@ -177,7 +180,7 @@ class MonthlyReport(Base):
     report_data = Column(JSON, nullable=True)
     pdf_url = Column(String(1024), nullable=True)
     
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=utc_now, nullable=False)
 
     # Relationships
     user = relationship("User", back_populates="reports")
@@ -193,7 +196,7 @@ class Notification(Base):
     message = Column(String(1024), nullable=False)
     is_read = Column(Boolean, default=False, nullable=False)
     
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=utc_now, nullable=False)
 
     # Relationships
     user = relationship("User", back_populates="notifications")
@@ -205,7 +208,7 @@ class UserBadge(Base):
     id = Column(String(255), primary_key=True, default=lambda: str(uuid.uuid4()))
     user_id = Column(String(255), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     badge_id = Column(String(255), nullable=False)
-    earned_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    earned_at = Column(DateTime, default=utc_now, nullable=False)
 
     # Relationships
     user = relationship("User", back_populates="badges")

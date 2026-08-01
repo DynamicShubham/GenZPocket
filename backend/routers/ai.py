@@ -11,7 +11,7 @@ Endpoints:
 
 import os
 import json
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from decimal import Decimal
 from typing import Optional
 
@@ -143,8 +143,8 @@ async def chat(
         )
 
     # Persist messages
-    messages.append({"role": "user", "content": payload.message, "timestamp": datetime.utcnow().isoformat()})
-    messages.append({"role": "assistant", "content": reply, "timestamp": datetime.utcnow().isoformat()})
+    messages.append({"role": "user", "content": payload.message, "timestamp": datetime.now(timezone.utc).isoformat()})
+    messages.append({"role": "assistant", "content": reply, "timestamp": datetime.now(timezone.utc).isoformat()})
     conversation.messages = messages
 
     await db.commit()

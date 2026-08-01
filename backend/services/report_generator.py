@@ -10,7 +10,7 @@ Health Score Algorithm (0–100):
   - No overspend in any category: 10 pts bonus
 """
 
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from decimal import Decimal
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, text, func
@@ -88,7 +88,7 @@ async def generate_monthly_report(user_id: str, db: AsyncSession) -> MonthlyRepo
         "category_breakdown": category_totals,
         "distinct_logging_days": distinct_days,
         "overall_limit": overall_limit,
-        "generated_at": datetime.utcnow().isoformat(),
+        "generated_at": datetime.now(timezone.utc).isoformat(),
     }
 
     # ── Upsert report ─────────────────────────────────────────────────────────
