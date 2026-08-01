@@ -1,21 +1,19 @@
 import os
-from pathlib import Path
+# pyrefly: ignore [missing-import]
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import declarative_base
 from dotenv import load_dotenv
 
-# Load environment variables reliably from backend/.env or root .env.local
-backend_dir = Path(__file__).parent
-load_dotenv(backend_dir / ".env")
-load_dotenv(backend_dir.parent / ".env.local")
+# Load environment variables
+load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 if not DATABASE_URL:
-    # Fallback to local SQLite DB for development if DATABASE_URL is not set
-    DATABASE_URL = f"sqlite+aiosqlite:///{backend_dir}/genzpocket.db"
+    # Fallback/placeholder for development if not set yet
+    DATABASE_URL = "postgresql+asyncpg://postgres:postgres@localhost:5432/genzpocket"
 else:
-    # Ensure correct asyncpg driver protocol for PostgreSQL
+    # Ensure correct asyncpg driver protocol
     if DATABASE_URL.startswith("postgresql://"):
         DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
     elif DATABASE_URL.startswith("postgres://"):

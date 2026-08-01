@@ -31,7 +31,7 @@ async def _resolve_session_token(
         return credentials.credentials
 
     # 2. Fallback: cookie set by Better Auth client
-    token = request.cookies.get("better-auth.session_token")
+    token = request.cookies.get("better-auth.session_token") or request.cookies.get("better-auth.session-token")
     if token:
         return token
 

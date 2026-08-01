@@ -36,14 +36,6 @@ uploads_dir = Path(__file__).parent / "uploads"
 uploads_dir.mkdir(parents=True, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=str(uploads_dir)), name="uploads")
 
-# ── Register routers ───────────────────────────────────────────────────────────
-app.include_router(expenses_router)
-app.include_router(budgets_router)
-app.include_router(goals_router)
-app.include_router(recurring_router)
-app.include_router(ai_router)
-app.include_router(reports_router)
-app.include_router(notifications_router)
 
 # ── CORS ───────────────────────────────────────────────────────────────────────
 cors_origins_env = os.getenv("CORS_ORIGINS", "")
@@ -67,6 +59,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ── Register routers ───────────────────────────────────────────────────────────
+app.include_router(expenses_router)
+app.include_router(budgets_router)
+app.include_router(goals_router)
+app.include_router(recurring_router)
+app.include_router(ai_router)
+app.include_router(reports_router)
+app.include_router(notifications_router)
 
 # ── Health check ───────────────────────────────────────────────────────────────
 @app.get("/health", tags=["Health"])
