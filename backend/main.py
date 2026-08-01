@@ -1,18 +1,7 @@
 import os
 import sys
 from pathlib import Path
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
-
-from backend.routers.expenses import router as expenses_router
-from backend.routers.budgets import router as budgets_router
-from backend.routers.goals import router as goals_router
-from backend.routers.recurring import router as recurring_router
-from backend.routers.ai import router as ai_router
-from backend.routers.reports import router as reports_router
-from backend.routers.notifications import router as notifications_router
 
 # Ensure backend directory is in sys.path for clean imports
 backend_dir = Path(__file__).resolve().parent
@@ -21,7 +10,20 @@ if str(backend_dir) not in sys.path:
 
 # Load environment variables
 load_dotenv(backend_dir / ".env")
-load_dotenv(backend_dir.parent / ".env.local")
+if (backend_dir.parent / ".env.local").exists():
+    load_dotenv(backend_dir.parent / ".env.local")
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+
+from routers.expenses import router as expenses_router
+from routers.budgets import router as budgets_router
+from routers.goals import router as goals_router
+from routers.recurring import router as recurring_router
+from routers.ai import router as ai_router
+from routers.reports import router as reports_router
+from routers.notifications import router as notifications_router
 
 
 app = FastAPI(
