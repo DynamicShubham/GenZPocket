@@ -1,6 +1,9 @@
 "use client";
 
 import { Flame, Download, BarChart2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { signOut } from "@/lib/auth-client";
+import posthog from "posthog-js";
 
 const MOCK_USER = {
   name: "Riya Sharma",
@@ -24,6 +27,18 @@ const MOCK_REPORT = {
 };
 
 export default function ProfilePage() {
+  const router = useRouter();
+
+  const handleSettingClick = async (label: string) => {
+    posthog.capture("setting_clicked", { setting: label });
+    if (label === "Sign Out") {
+      posthog.capture("user_logged_out");
+      posthog.reset();
+      await signOut();
+      router.push("/login");
+    }
+  };
+
   return (
     <div className="page animate-slide-up">
       {/* ── User Info ── */}
@@ -82,7 +97,12 @@ export default function ProfilePage() {
         </div>
         <div className="divider" style={{ margin: "var(--space-2) 0" }} />
         <div style={{ display: "flex", gap: "var(--space-2)" }}>
-          <button className="btn btn-secondary" style={{ flex: 1, padding: "0.5rem", fontSize: "0.8125rem" }} id="btn-download-report">
+          <button
+            className="btn btn-secondary"
+            style={{ flex: 1, padding: "0.5rem", fontSize: "0.8125rem" }}
+            id="btn-download-report"
+            onClick={() => posthog.capture("report_download_clicked", { month: MOCK_REPORT.month })}
+          >
             <Download size={14} /> PDF Report
           </button>
           <button className="btn btn-secondary" style={{ flex: 1, padding: "0.5rem", fontSize: "0.8125rem" }} id="btn-view-analytics">
@@ -126,6 +146,7 @@ export default function ProfilePage() {
           <button
             key={label}
             id={`setting-${label.toLowerCase().replace(/\s/g, "-")}`}
+            onClick={() => handleSettingClick(label)}
             style={{
               display: "flex", alignItems: "center", justifyContent: "space-between",
               width: "100%", padding: "0.875rem 0",
