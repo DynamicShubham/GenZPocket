@@ -49,7 +49,8 @@ async def check_budget_alerts(user_id: str, db: AsyncSession) -> None:
 
     # ── 3. Helper: notify once per threshold ──────────────────────────────────
     # Build a datetime representing start of this month for the created_at comparison
-    month_start_dt = datetime(month_start.year, month_start.month, 1)
+    from datetime import timezone
+    month_start_dt = datetime(month_start.year, month_start.month, 1, tzinfo=timezone.utc)
 
     async def _maybe_notify(
         notif_type: NotificationType,

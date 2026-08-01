@@ -23,6 +23,21 @@ load_dotenv()
 # Set database URL dynamically from environment
 db_url = os.getenv("DATABASE_URL")
 if db_url:
+    from urllib.parse import urlparse, parse_qsl, urlencode, urlunparse
+    parsed = urlparse(db_url)
+    q_params = parse_qsl(parsed.query)
+    filtered_params = []
+    for k, v in q_params:
+        if k == "channel_binding":
+            continue
+        if k == "sslmode":
+            filtered_params.append(("ssl", v))
+        else:
+            filtered_params.append((k, v))
+    new_query = urlencode(filtered_params)
+    parsed = parsed._replace(query=new_query)
+    db_url = urlunparse(parsed)
+
     if db_url.startswith("postgresql://"):
         db_url = db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
     elif db_url.startswith("postgres://"):

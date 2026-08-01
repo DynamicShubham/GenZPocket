@@ -13,6 +13,21 @@ if not DATABASE_URL:
     # Fallback/placeholder for development if not set yet
     DATABASE_URL = "postgresql+asyncpg://postgres:postgres@localhost:5432/genzpocket"
 else:
+    from urllib.parse import urlparse, parse_qsl, urlencode, urlunparse
+    parsed = urlparse(DATABASE_URL)
+    q_params = parse_qsl(parsed.query)
+    filtered_params = []
+    for k, v in q_params:
+        if k == "channel_binding":
+            continue
+        if k == "sslmode":
+            filtered_params.append(("ssl", v))
+        else:
+            filtered_params.append((k, v))
+    new_query = urlencode(filtered_params)
+    parsed = parsed._replace(query=new_query)
+    DATABASE_URL = urlunparse(parsed)
+
     # Ensure correct asyncpg driver protocol
     if DATABASE_URL.startswith("postgresql://"):
         DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)

@@ -20,14 +20,14 @@ def run_async(coro):
 @celery_app.task(name="tasks.apply_due_recurring_expenses")
 def apply_due_recurring_expenses():
     """Task 4.3: Auto-apply recurring expenses due today or earlier."""
-    from database import AsyncSessionLocal
+    from database import async_session
     from models import RecurringExpense, Expense, RecurringFrequency
     from sqlalchemy import select
     from dateutil.relativedelta import relativedelta
     from datetime import timedelta
 
     async def _impl():
-        async with AsyncSessionLocal() as db:
+        async with async_session() as db:
             today = date.today()
             stmt = select(RecurringExpense).where(
                 RecurringExpense.is_active == True,
@@ -69,13 +69,13 @@ def apply_due_recurring_expenses():
 @celery_app.task(name="tasks.send_weekly_budget_summaries")
 def send_weekly_budget_summaries():
     """Task 4.4: Send weekly budget summary notifications."""
-    from database import AsyncSessionLocal
-    from models import User, Notification
+    from database import async_session
+    from models import User, Notification, NotificationType
     from services.budget_alerts import check_budget_alerts
     from sqlalchemy import select
 
     async def _impl():
-        async with AsyncSessionLocal() as db:
+        async with async_session() as db:
             result = await db.execute(select(User.id))
             user_ids = result.scalars().all()
 
@@ -83,9 +83,8 @@ def send_weekly_budget_summaries():
                 await check_budget_alerts(uid, db)
                 n = Notification(
                     user_id=uid,
-                    title="📊 Weekly Budget Digest",
                     message="Check your dashboard to see your weekly spending progress & remaining budget!",
-                    type="INFO",
+                    type=NotificationType.WEEKLY_CHECKIN,
                 )
                 db.add(n)
 
@@ -98,13 +97,13 @@ def send_weekly_budget_summaries():
 @celery_app.task(name="tasks.compile_monthly_reports")
 def compile_monthly_reports():
     """Task 6.4: Monthly task to generate and store monthly reports for all active users."""
-    from database import AsyncSessionLocal
+    from database import async_session
     from models import User
     from services.report_generator import generate_monthly_report
     from sqlalchemy import select
 
     async def _impl():
-        async with AsyncSessionLocal() as db:
+        async with async_session() as db:
             result = await db.execute(select(User.id))
             user_ids = result.scalars().all()
 
