@@ -15,7 +15,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text, select
 
-from backend.database import get_db
+from database import get_db
 
 # We use HTTPBearer but also accept the cookie "better-auth.session_token"
 _bearer = HTTPBearer(auto_error=False)
