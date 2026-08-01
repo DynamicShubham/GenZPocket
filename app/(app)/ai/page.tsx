@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Send, Bot, Sparkles } from "lucide-react";
 import { apiFetch } from "@/lib/api";
+import posthog from "posthog-js";
 
 interface Message {
   role: "user" | "assistant";
@@ -32,8 +33,13 @@ export default function AIPage() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const sendMessage = async (text: string) => {
+  const sendMessage = async (text: string, isQuickPrompt = false) => {
     if (!text.trim() || loading) return;
+    if (isQuickPrompt) {
+      posthog.capture("ai_quick_prompt_used", { prompt: text });
+    } else {
+      posthog.capture("ai_message_sent", { message_length: text.trim().length, has_conversation: !!convId });
+    }
     const userMsg: Message = { role: "user", content: text };
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
@@ -90,7 +96,7 @@ export default function AIPage() {
         {QUICK_PROMPTS.map((q) => (
           <button
             key={q}
-            onClick={() => sendMessage(q)}
+            onClick={() => sendMessage(q, true)}
             style={{
               background: "transparent", border: "1.5px solid var(--charcoal-grey)",
               borderRadius: "var(--radius)", padding: "0.3rem 0.625rem",

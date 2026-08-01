@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
+import posthog from "posthog-js";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -19,6 +20,11 @@ export default function LoginPage() {
     try {
       const result = await authClient.signIn.email({ email, password });
       if (result.error) throw new Error(result.error.message);
+      // Identify returning user and capture login event
+      if (result.data?.user?.id) {
+        posthog.identify(result.data.user.id, { role: "user" });
+      }
+      posthog.capture("user_logged_in", { method: "email" });
       router.push("/dashboard");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Login failed. Check your credentials.");
@@ -28,6 +34,7 @@ export default function LoginPage() {
   };
 
   const handleGoogle = async () => {
+    posthog.capture("user_logged_in", { method: "google" });
     await authClient.signIn.social({ provider: "google" });
   };
 

@@ -1,0 +1,57 @@
+[
+  {
+    "event_name": "user_signed_up",
+    "event_description": "Fires when a user successfully creates a new account via email signup.",
+    "file": "app/(auth)/signup/page.tsx"
+  },
+  {
+    "event_name": "user_logged_in",
+    "event_description": "Fires when a user successfully signs in with email and password.",
+    "file": "app/(auth)/login/page.tsx"
+  },
+  {
+    "event_name": "user_logged_out",
+    "event_description": "Fires when a user taps the Sign Out button on the profile page.",
+    "file": "app/(app)/profile/page.tsx"
+  },
+  {
+    "event_name": "expense_logged",
+    "event_description": "Fires when a user successfully submits the Add Expense form.",
+    "file": "components/expense/AddExpenseModal.tsx"
+  },
+  {
+    "event_name": "receipt_scan_started",
+    "event_description": "Fires when a user uploads a receipt image for OCR auto-fill in the expense modal.",
+    "file": "components/expense/AddExpenseModal.tsx"
+  },
+  {
+    "event_name": "ai_message_sent",
+    "event_description": "Fires when a user sends a custom message to the AI financial adviser.",
+    "file": "app/(app)/ai/page.tsx"
+  },
+  {
+    "event_name": "ai_quick_prompt_used",
+    "event_description": "Fires when a user clicks one of the pre-defined quick-prompt buttons in the AI chat.",
+    "file": "app/(app)/ai/page.tsx"
+  },
+  {
+    "event_name": "budget_tab_switched",
+    "event_description": "Fires when a user switches between the Budgets and Goals tabs on the budget page.",
+    "file": "app/(app)/budgets/page.tsx"
+  },
+  {
+    "event_name": "goal_add_clicked",
+    "event_description": "Fires when a user taps the Add New Goal button on the budgets/goals page.",
+    "file": "app/(app)/budgets/page.tsx"
+  },
+  {
+    "event_name": "report_download_clicked",
+    "event_description": "Fires when a user taps the PDF Report download button on the profile page.",
+    "file": "app/(app)/profile/page.tsx"
+  },
+  {
+    "event_name": "setting_clicked",
+    "event_description": "Fires when a user taps any settings option on the profile page.",
+    "file": "app/(app)/profile/page.tsx"
+  }
+]

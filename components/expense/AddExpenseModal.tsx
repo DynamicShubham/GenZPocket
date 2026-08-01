@@ -15,6 +15,7 @@ const CATEGORIES = [
 ];
 
 import { apiFetch } from "@/lib/api";
+import posthog from "posthog-js";
 
 interface Props {
   onClose: () => void;
@@ -35,6 +36,7 @@ export function AddExpenseModal({ onClose, onSuccess }: Props) {
   const handleReceiptScan = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    posthog.capture("receipt_scan_started", { file_type: file.type });
     setScanning(true);
     setError("");
     try {
@@ -77,6 +79,12 @@ export function AddExpenseModal({ onClose, onSuccess }: Props) {
         }),
       });
       if (!res.ok) throw new Error("Failed to log expense");
+      posthog.capture("expense_logged", {
+        category: category || "uncategorized",
+        amount_inr: parseFloat(amount),
+        has_note: !!note,
+        receipt_scanned: !!receiptUrl,
+      });
       onSuccess?.();
       onClose();
     } catch (err: unknown) {

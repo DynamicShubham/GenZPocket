@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Plus } from "lucide-react";
+import posthog from "posthog-js";
 
 const MOCK_BUDGETS = [
   { category: "FOOD",          limit: 2500, spent: 1420, color: "#FF6B35", emoji: "🍕" },
@@ -53,7 +54,10 @@ export default function BudgetsPage() {
           <button
             key={tab}
             id={`tab-${tab}`}
-            onClick={() => setActiveTab(tab)}
+            onClick={() => {
+              posthog.capture("budget_tab_switched", { tab });
+              setActiveTab(tab);
+            }}
             style={{
               flex: 1, padding: "0.625rem", fontFamily: "var(--font-display)", fontWeight: 700,
               fontSize: "0.875rem", textTransform: "uppercase", cursor: "pointer",
@@ -155,7 +159,12 @@ export default function BudgetsPage() {
             );
           })}
 
-          <button className="btn btn-secondary" style={{ width: "100%" }} id="btn-add-goal">
+          <button
+            className="btn btn-secondary"
+            style={{ width: "100%" }}
+            id="btn-add-goal"
+            onClick={() => posthog.capture("goal_add_clicked")}
+          >
             <Plus size={16} /> Add New Goal
           </button>
         </div>

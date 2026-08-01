@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
+import posthog from "posthog-js";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -24,6 +25,11 @@ export default function SignupPage() {
     try {
       const result = await authClient.signUp.email({ name, email, password });
       if (result.error) throw new Error(result.error.message);
+      // Identify the newly registered user and capture the sign-up event
+      if (result.data?.user?.id) {
+        posthog.identify(result.data.user.id, { name, role: "user" });
+      }
+      posthog.capture("user_signed_up", { method: "email" });
       router.push("/dashboard");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Sign up failed. Try again.");
