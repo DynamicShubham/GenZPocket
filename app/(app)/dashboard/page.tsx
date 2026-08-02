@@ -1,25 +1,40 @@
 "use client";
 
-import { useState } from "react";
-import { TrendingUp, Flame } from "lucide-react";
+import { TrendingUp, Flame, AlertCircle } from "lucide-react";
 import { AddExpenseModal } from "@/components/expense/AddExpenseModal";
+import { useApi } from "@/lib/useApi";
+import { useState, useCallback } from "react";
 
-// ── Mock data (replace with API calls once auth is wired on client) ──
-const MOCK_BUDGET = {
-  remaining: 4230,
-  total: 8000,
-  spent: 3770,
-  pctUsed: 47,
-  daysLeft: 12,
-};
+// ── Type definitions matching the FastAPI response shapes ──────────────────
+interface BudgetStatus {
+  overall: {
+    limit: number;
+    spent: number;
+    remaining: number;
+    pct: number;
+  };
+  categories: Array<{
+    name: string;
+    limit: number;
+    spent: number;
+    remaining: number;
+    pct: number;
+  }>;
+}
 
-const MOCK_TRANSACTIONS = [
-  { id: "1", merchant: "Zomato",    category: "FOOD",          amount: -340, date: "Today" },
-  { id: "2", merchant: "Uber",      category: "TRAVEL",        amount: -120, date: "Today" },
-  { id: "3", merchant: "Netflix",   category: "ENTERTAINMENT", amount: -199, date: "Yesterday" },
-  { id: "4", merchant: "Amazon",    category: "SHOPPING",      amount: -680, date: "Jul 29" },
-  { id: "5", merchant: "Swiggy",    category: "FOOD",          amount: -260, date: "Jul 28" },
-];
+interface Expense {
+  id: string;
+  merchant: string;
+  category: string;
+  amount: number;
+  date: string; // ISO date string "YYYY-MM-DD"
+}
+
+interface UserProfile {
+  streak: number;
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
 
 const CATEGORY_EMOJI: Record<string, string> = {
   FOOD: "🍕", TRAVEL: "🚗", SHOPPING: "🛍️", ENTERTAINMENT: "🎬",
@@ -34,37 +49,117 @@ const CATEGORY_CHIP_CLASS: Record<string, string> = {
   UTILITIES: "chip chip-utilities", RENT: "chip chip-rent", OTHER: "chip chip-other",
 };
 
+function formatTxDate(isoDate: string): string {
+  const d = new Date(isoDate);
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+  if (d.toDateString() === today.toDateString()) return "Today";
+  if (d.toDateString() === yesterday.toDateString()) return "Yesterday";
+  return d.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+}
+
+// ── Skeleton loader ───────────────────────────────────────────────────────────
+function Skeleton({ height = "1rem", width = "100%", style = {} }: { height?: string; width?: string; style?: React.CSSProperties }) {
+  return (
+    <div style={{
+      height, width, background: "linear-gradient(90deg,#e5e5e5 25%,#f0f0f0 50%,#e5e5e5 75%)",
+      backgroundSize: "200% 100%", animation: "shimmer 1.4s infinite",
+      borderRadius: "4px", ...style,
+    }} />
+  );
+}
+
+// ── Days left in month ────────────────────────────────────────────────────────
+function daysLeftInMonth(): number {
+  const now = new Date();
+  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  return lastDay - now.getDate();
+}
+
 export default function DashboardPage() {
   const [showAdd, setShowAdd] = useState(false);
-  const pct = MOCK_BUDGET.pctUsed;
+  const [expenseTick, setExpenseTick] = useState(0);
+
+  const {
+    data: budget,
+    loading: budgetLoading,
+    error: budgetError,
+  } = useApi<BudgetStatus>("/budgets/status");
+
+  const {
+    data: transactions,
+    loading: txLoading,
+    refetch: refetchTx,
+  } = useApi<Expense[]>("/expenses?page=1&page_size=5", [expenseTick]);
+
+  const { data: profile } = useApi<UserProfile>("/users/me");
+
+  const handleExpenseSuccess = useCallback(() => {
+    setExpenseTick((t) => t + 1);
+    refetchTx();
+  }, [refetchTx]);
+
+  const pct = budget?.overall?.pct ?? 0;
+  const remaining = budget?.overall?.remaining ?? 0;
+  const spent = budget?.overall?.spent ?? 0;
+  const limit = budget?.overall?.limit ?? 0;
+  const daysLeft = daysLeftInMonth();
+  const streak = profile?.streak ?? 0;
   const barClass = pct >= 100 ? "progress-bar danger" : pct >= 80 ? "progress-bar warning" : "progress-bar";
 
   return (
     <div className="page animate-slide-up">
-      {/* ── Stamped Ledger Card — Balance ── */}
+      {/* ── Balance Ledger Card ── */}
       <div className="ledger-card" style={{ marginBottom: "var(--space-3)" }}>
         <p className="caption" style={{ marginBottom: "0.25rem" }}>BALANCE LEFT THIS MONTH</p>
-        <p
-          className="text-display"
-          style={{ fontFamily: "var(--font-display)", lineHeight: 1, marginBottom: "0.5rem" }}
-        >
-          ₹{MOCK_BUDGET.remaining.toLocaleString("en-IN")}
-        </p>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "var(--space-2)" }}>
-          <span style={{ color: "var(--mint-green)", display: "flex", alignItems: "center", gap: "4px" }}>
-            <TrendingUp size={14} /> <span className="caption" style={{ color: "var(--mint-green)" }}>12% vs last month</span>
-          </span>
-          <span className="caption">·</span>
-          <span className="caption">{MOCK_BUDGET.daysLeft} days left</span>
-        </div>
-        {/* Progress bar */}
-        <div className="progress-track">
-          <div className={barClass} style={{ width: `${Math.min(pct, 100)}%` }} />
-        </div>
-        <div style={{ display: "flex", justifyContent: "space-between", marginTop: "0.375rem" }}>
-          <span className="caption">₹{MOCK_BUDGET.spent.toLocaleString("en-IN")} spent</span>
-          <span className="caption">{pct}% used</span>
-        </div>
+
+        {budgetLoading ? (
+          <>
+            <Skeleton height="2.5rem" width="60%" style={{ marginBottom: "0.5rem" }} />
+            <Skeleton height="0.75rem" width="40%" style={{ marginBottom: "var(--space-2)" }} />
+            <Skeleton height="0.5rem" />
+          </>
+        ) : budgetError ? (
+          <div style={{ padding: "1rem 0" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "var(--charcoal-grey)" }}>
+              <AlertCircle size={16} />
+              <p style={{ fontFamily: "var(--font-display)", fontWeight: 700 }}>
+                No budget set for this month
+              </p>
+            </div>
+            <p className="caption" style={{ marginTop: "0.25rem" }}>
+              Go to Budgets tab to set your monthly limit.
+            </p>
+          </div>
+        ) : (
+          <>
+            <p
+              className="text-display"
+              style={{ fontFamily: "var(--font-display)", lineHeight: 1, marginBottom: "0.5rem" }}
+            >
+              ₹{Math.round(remaining).toLocaleString("en-IN")}
+            </p>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "var(--space-2)" }}>
+              <span style={{ color: "var(--mint-green)", display: "flex", alignItems: "center", gap: "4px" }}>
+                <TrendingUp size={14} />
+                <span className="caption" style={{ color: "var(--mint-green)" }}>
+                  {Math.round(pct)}% used
+                </span>
+              </span>
+              <span className="caption">·</span>
+              <span className="caption">{daysLeft} days left</span>
+            </div>
+            {/* Progress bar */}
+            <div className="progress-track">
+              <div className={barClass} style={{ width: `${Math.min(pct, 100)}%` }} />
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", marginTop: "0.375rem" }}>
+              <span className="caption">₹{Math.round(spent).toLocaleString("en-IN")} spent</span>
+              <span className="caption">of ₹{Math.round(limit).toLocaleString("en-IN")}</span>
+            </div>
+          </>
+        )}
       </div>
 
       {/* ── Quick Stats Row ── */}
@@ -73,17 +168,25 @@ export default function DashboardPage() {
         <div className="card" style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
           <Flame size={24} color="var(--alert-red)" strokeWidth={2.5} />
           <div>
-            <p style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "1.5rem", lineHeight: 1 }}>7</p>
+            <p style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "1.5rem", lineHeight: 1 }}>
+              {streak}
+            </p>
             <p className="caption">day streak 🔥</p>
           </div>
         </div>
         {/* Safe-to-spend today */}
         <div className="card">
           <p className="caption" style={{ marginBottom: "0.25rem" }}>SAFE TO SPEND</p>
-          <p style={{ fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: "1.25rem", lineHeight: 1 }}>
-            ₹{Math.round(MOCK_BUDGET.remaining / MOCK_BUDGET.daysLeft).toLocaleString("en-IN")}
-            <span className="caption">/day</span>
-          </p>
+          {budgetLoading ? (
+            <Skeleton height="1.25rem" width="70%" />
+          ) : (
+            <p style={{ fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: "1.25rem", lineHeight: 1 }}>
+              {daysLeft > 0
+                ? <>₹{Math.round(remaining / daysLeft).toLocaleString("en-IN")}<span className="caption">/day</span></>
+                : <span className="caption">Month ends today</span>
+              }
+            </p>
+          )}
         </div>
       </div>
 
@@ -100,31 +203,59 @@ export default function DashboardPage() {
       {/* ── Recent Transactions ── */}
       <div>
         <p className="section-label">RECENT TRANSACTIONS</p>
-        <div>
-          {MOCK_TRANSACTIONS.map((tx) => (
-            <div key={tx.id} className="tx-row">
-              <div className="tx-icon">
-                {CATEGORY_EMOJI[tx.category] || "📦"}
+        {txLoading ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginTop: "0.75rem" }}>
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="tx-row">
+                <Skeleton height="2.5rem" width="2.5rem" style={{ borderRadius: "6px", flexShrink: 0 }} />
+                <div style={{ flex: 1 }}>
+                  <Skeleton height="1rem" width="50%" style={{ marginBottom: "0.375rem" }} />
+                  <Skeleton height="0.75rem" width="30%" />
+                </div>
               </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p className="tx-merchant">{tx.merchant}</p>
-                <span className={CATEGORY_CHIP_CLASS[tx.category] || "chip chip-other"}>
-                  {tx.category.charAt(0) + tx.category.slice(1).toLowerCase()}
-                </span>
+            ))}
+          </div>
+        ) : !transactions || transactions.length === 0 ? (
+          <div style={{
+            marginTop: "0.75rem", padding: "2rem", textAlign: "center",
+            border: "2px dashed var(--charcoal-grey)", borderRadius: "var(--radius)",
+          }}>
+            <p style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>💸</p>
+            <p style={{ fontFamily: "var(--font-display)", fontWeight: 700 }}>No expenses yet</p>
+            <p className="caption">Tap &quot;Log Expense&quot; to add your first one.</p>
+          </div>
+        ) : (
+          <div>
+            {transactions.map((tx) => (
+              <div key={tx.id} className="tx-row">
+                <div className="tx-icon">
+                  {CATEGORY_EMOJI[tx.category] || "📦"}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p className="tx-merchant">{tx.merchant}</p>
+                  <span className={CATEGORY_CHIP_CLASS[tx.category] || "chip chip-other"}>
+                    {tx.category.charAt(0) + tx.category.slice(1).toLowerCase()}
+                  </span>
+                </div>
+                <div style={{ textAlign: "right" }}>
+                  <p className="tx-amount negative">
+                    -₹{Math.abs(Number(tx.amount)).toLocaleString("en-IN")}
+                  </p>
+                  <p className="caption">{formatTxDate(tx.date)}</p>
+                </div>
               </div>
-              <div style={{ textAlign: "right" }}>
-                <p className={`tx-amount ${tx.amount < 0 ? "negative" : "positive"}`}>
-                  {tx.amount < 0 ? "-" : "+"}₹{Math.abs(tx.amount)}
-                </p>
-                <p className="caption">{tx.date}</p>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* ── Add Expense Modal ── */}
-      {showAdd && <AddExpenseModal onClose={() => setShowAdd(false)} />}
+      {showAdd && (
+        <AddExpenseModal
+          onClose={() => setShowAdd(false)}
+          onSuccess={handleExpenseSuccess}
+        />
+      )}
     </div>
   );
 }

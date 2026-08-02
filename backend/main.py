@@ -24,6 +24,7 @@ from routers.recurring import router as recurring_router
 from routers.ai import router as ai_router
 from routers.reports import router as reports_router
 from routers.notifications import router as notifications_router
+from routers.users import router as users_router
 
 
 app = FastAPI(
@@ -71,6 +72,7 @@ app.include_router(recurring_router)
 app.include_router(ai_router)
 app.include_router(reports_router)
 app.include_router(notifications_router)
+app.include_router(users_router)
 
 # ── Health check ───────────────────────────────────────────────────────────────
 @app.get("/health", tags=["Health"])

@@ -801,3 +801,12 @@ p, .body { font-size: var(--text-body); line-height: 1.6; }
   outline: 3px solid var(--electric-blue);
   outline-offset: 2px;
 }
+
+/* ─────────────────────────────────────────────────────────────────
+   21. SKELETON / SHIMMER LOADING
+   ───────────────────────────────────────────────────────────────── */
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
