@@ -200,7 +200,7 @@ export default function DashboardPage() {
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-2)", marginBottom: "var(--space-3)" }}>
         <button
           className="btn btn-secondary"
-          style={{ width: "100%", fontSize: "1rem", color: "var(--ink-black)", border: "2px solid var(--ink-black)" }}
+          style={{ width: "100%", fontSize: "1rem" }}
           onClick={() => setShowAddIncome(true)}
           id="btn-add-income"
         >

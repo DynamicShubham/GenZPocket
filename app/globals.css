@@ -18,94 +18,110 @@
 
 :root {
   /* Color Palette */
-  --ink-black:       #0D0D0D;
-  --paper-white:     #F7F5F0;
-  --electric-blue:   #2E5EFF;
-  --signal-yellow:   #FFD500;
-  --alert-red:       #FF3B30;
-  --mint-green:      #00C48C;
-  --lilac-pop:       #B18CFF;
-  --charcoal-grey:   #3A3A3A;
+  --ink-black: #0D0D0D;
+  --paper-white: #F7F5F0;
+  --electric-blue: #2E5EFF;
+  --signal-yellow: #FFD500;
+  --alert-red: #FF3B30;
+  --mint-green: #00C48C;
+  --lilac-pop: #B18CFF;
+  --charcoal-grey: #3A3A3A;
 
   /* Semantic aliases */
-  --color-bg:        var(--paper-white);
-  --color-text:      var(--ink-black);
+  --color-bg: var(--paper-white);
+  --color-text: var(--ink-black);
   --color-text-muted: var(--charcoal-grey);
-  --color-primary:   var(--electric-blue);
-  --color-success:   var(--mint-green);
-  --color-warning:   var(--signal-yellow);
-  --color-danger:    var(--alert-red);
-  --color-ai:        var(--lilac-pop);
-  --color-border:    var(--ink-black);
+  --color-primary: var(--electric-blue);
+  --color-success: var(--mint-green);
+  --color-warning: var(--signal-yellow);
+  --color-danger: var(--alert-red);
+  --color-ai: var(--lilac-pop);
+  --color-border: var(--ink-black);
 
   /* Category colors (fixed 6-hue sub-palette) */
-  --cat-food:           #FF6B35;
-  --cat-travel:         #2E5EFF;
-  --cat-shopping:       #FFD500;
-  --cat-entertainment:  #B18CFF;
-  --cat-health:         #00C48C;
-  --cat-education:      #FF3B30;
-  --cat-subscriptions:  #3A3A3A;
-  --cat-utilities:      #6B7280;
-  --cat-rent:           #92400E;
-  --cat-other:          #9CA3AF;
+  --cat-food: #FF6B35;
+  --cat-travel: #2E5EFF;
+  --cat-shopping: #FFD500;
+  --cat-entertainment: #B18CFF;
+  --cat-health: #00C48C;
+  --cat-education: #FF3B30;
+  --cat-subscriptions: #3A3A3A;
+  --cat-utilities: #6B7280;
+  --cat-rent: #92400E;
+  --cat-other: #9CA3AF;
 
   /* Typography */
   --font-display: var(--font-space-grotesk), "Space Grotesk", system-ui, sans-serif;
-  --font-body:    var(--font-inter), "Inter", system-ui, sans-serif;
-  --font-mono:    var(--font-ibm-plex-mono), "IBM Plex Mono", "Courier New", monospace;
+  --font-body: var(--font-inter), "Inter", system-ui, sans-serif;
+  --font-mono: var(--font-ibm-plex-mono), "IBM Plex Mono", "Courier New", monospace;
 
   /* Type scale */
-  --text-display: clamp(2.5rem, 5vw, 3.5rem);  /* 40–56px */
-  --text-h1:      1.75rem;   /* 28px */
-  --text-h2:      1.25rem;   /* 20px */
-  --text-body:    1rem;      /* 16px */
-  --text-caption: 0.8125rem; /* 13px */
-  --text-mono:    1rem;      /* 16px */
+  --text-display: clamp(2.5rem, 5vw, 3.5rem);
+  /* 40–56px */
+  --text-h1: 1.75rem;
+  /* 28px */
+  --text-h2: 1.25rem;
+  /* 20px */
+  --text-body: 1rem;
+  /* 16px */
+  --text-caption: 0.8125rem;
+  /* 13px */
+  --text-mono: 1rem;
+  /* 16px */
 
   /* Spacing (8pt grid) */
-  --space-1: 0.5rem;   /* 8px */
-  --space-2: 1rem;     /* 16px */
-  --space-3: 1.5rem;   /* 24px */
-  --space-4: 2rem;     /* 32px */
-  --space-5: 2.5rem;   /* 40px */
-  --space-6: 3rem;     /* 48px */
+  --space-1: 0.5rem;
+  /* 8px */
+  --space-2: 1rem;
+  /* 16px */
+  --space-3: 1.5rem;
+  /* 24px */
+  --space-4: 2rem;
+  /* 32px */
+  --space-5: 2.5rem;
+  /* 40px */
+  --space-6: 3rem;
+  /* 48px */
 
   /* Border */
   --border-width: 2px;
   --border-width-thick: 3px;
   --border: var(--border-width) solid var(--ink-black);
   --border-thick: var(--border-width-thick) solid var(--ink-black);
-  --radius: 4px;       /* sharp corners — max 4-6px */
+  --radius: 4px;
+  /* sharp corners — max 4-6px */
   --radius-btn: 5px;
 
   /* Shadows — hard offset only, NO blur */
   --shadow-sm: 2px 2px 0px var(--ink-black);
-  --shadow:    3px 3px 0px var(--ink-black);
+  --shadow: 3px 3px 0px var(--ink-black);
   --shadow-md: 4px 4px 0px var(--ink-black);
   --shadow-lg: 6px 6px 0px var(--ink-black);
-  --shadow-pressed: 0px 0px 0px var(--ink-black);  /* button press state */
+  --shadow-pressed: 0px 0px 0px var(--ink-black);
+  /* button press state */
 
   /* Motion — mechanical, snappy */
   --duration-fast: 80ms;
-  --duration-mid:  150ms;
+  --duration-mid: 150ms;
   --ease-snap: cubic-bezier(0.25, 0, 0.5, 1);
 }
 
 /* ─────────────────────────────────────────────────────────────────
    1.5. DARK MODE OVERRIDES
    ───────────────────────────────────────────────────────────────── */
-:root[data-theme="dark"] {
-  --ink-black:       #F7F5F0;
-  --paper-white:     #0D0D0D;
-  --charcoal-grey:   #A0A0A0;
+.dark {
+  --ink-black: #F7F5F0;
+  --paper-white: #0D0D0D;
+  --charcoal-grey: #A0A0A0;
 }
 
 /* ─────────────────────────────────────────────────────────────────
    2. RESET & BASE
    ───────────────────────────────────────────────────────────────── */
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -131,8 +147,16 @@ body {
    3. TYPOGRAPHY
    ───────────────────────────────────────────────────────────────── */
 
-h1, h2, h3, h4, h5, h6,
-.display, .h1, .h2, .h3 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.display,
+.h1,
+.h2,
+.h3 {
   font-family: var(--font-display);
   font-weight: 700;
   line-height: 1.1;
@@ -146,18 +170,31 @@ h1, h2, h3, h4, h5, h6,
   line-height: 1.0;
 }
 
-h1, .h1 { font-size: var(--text-h1); }
-h2, .h2 { font-size: var(--text-h2); }
+h1,
+.h1 {
+  font-size: var(--text-h1);
+}
 
-p, .body { font-size: var(--text-body); line-height: 1.6; }
+h2,
+.h2 {
+  font-size: var(--text-h2);
+}
 
-.caption, .meta {
+p,
+.body {
+  font-size: var(--text-body);
+  line-height: 1.6;
+}
+
+.caption,
+.meta {
   font-size: var(--text-caption);
   font-weight: 500;
   color: var(--charcoal-grey);
 }
 
-.mono, .amount {
+.mono,
+.amount {
   font-family: var(--font-mono);
   font-weight: 700;
   letter-spacing: 0;
@@ -165,7 +202,8 @@ p, .body { font-size: var(--text-body); line-height: 1.6; }
 
 .amount-lg {
   font-family: var(--font-mono);
-  font-size: 1.125rem; /* 18px */
+  font-size: 1.125rem;
+  /* 18px */
   font-weight: 700;
 }
 
@@ -228,6 +266,8 @@ p, .body { font-size: var(--text-body); line-height: 1.6; }
   box-shadow: var(--shadow-md);
 }
 
+
+
 .btn-secondary:active {
   transform: translate(3px, 3px);
   box-shadow: var(--shadow-pressed);
@@ -240,8 +280,15 @@ p, .body { font-size: var(--text-body); line-height: 1.6; }
   box-shadow: var(--shadow);
 }
 
-.btn-danger:hover { transform: translate(-1px, -1px); box-shadow: var(--shadow-md); }
-.btn-danger:active { transform: translate(3px, 3px); box-shadow: var(--shadow-pressed); }
+.btn-danger:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-danger:active {
+  transform: translate(3px, 3px);
+  box-shadow: var(--shadow-pressed);
+}
 
 /* Icon button */
 .btn-icon {
@@ -257,11 +304,18 @@ p, .body { font-size: var(--text-body); line-height: 1.6; }
   align-items: center;
   justify-content: center;
   transition: transform var(--duration-fast) var(--ease-snap),
-              box-shadow var(--duration-fast) var(--ease-snap);
+    box-shadow var(--duration-fast) var(--ease-snap);
 }
 
-.btn-icon:hover { transform: translate(-1px, -1px); box-shadow: var(--shadow); }
-.btn-icon:active { transform: translate(2px, 2px); box-shadow: var(--shadow-pressed); }
+.btn-icon:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: var(--shadow);
+}
+
+.btn-icon:active {
+  transform: translate(2px, 2px);
+  box-shadow: var(--shadow-pressed);
+}
 
 /* ─────────────────────────────────────────────────────────────────
    5. CARDS (Stamped Ledger Cards)
@@ -305,14 +359,37 @@ p, .body { font-size: var(--text-body); line-height: 1.6; }
 }
 
 /* Category card accent strip */
-.card-accent-food          { border-top: 4px solid var(--cat-food); }
-.card-accent-travel        { border-top: 4px solid var(--cat-travel); }
-.card-accent-shopping      { border-top: 4px solid var(--cat-shopping); }
-.card-accent-entertainment { border-top: 4px solid var(--cat-entertainment); }
-.card-accent-health        { border-top: 4px solid var(--cat-health); }
-.card-accent-education     { border-top: 4px solid var(--cat-education); }
-.card-accent-subscriptions { border-top: 4px solid var(--cat-subscriptions); }
-.card-accent-other         { border-top: 4px solid var(--cat-other); }
+.card-accent-food {
+  border-top: 4px solid var(--cat-food);
+}
+
+.card-accent-travel {
+  border-top: 4px solid var(--cat-travel);
+}
+
+.card-accent-shopping {
+  border-top: 4px solid var(--cat-shopping);
+}
+
+.card-accent-entertainment {
+  border-top: 4px solid var(--cat-entertainment);
+}
+
+.card-accent-health {
+  border-top: 4px solid var(--cat-health);
+}
+
+.card-accent-education {
+  border-top: 4px solid var(--cat-education);
+}
+
+.card-accent-subscriptions {
+  border-top: 4px solid var(--cat-subscriptions);
+}
+
+.card-accent-other {
+  border-top: 4px solid var(--cat-other);
+}
 
 /* ─────────────────────────────────────────────────────────────────
    6. INPUTS & FORMS
@@ -331,7 +408,10 @@ p, .body { font-size: var(--text-body); line-height: 1.6; }
   transition: box-shadow var(--duration-mid) var(--ease-snap);
 }
 
-.input::placeholder { color: var(--charcoal-grey); opacity: 0.7; }
+.input::placeholder {
+  color: var(--charcoal-grey);
+  opacity: 0.7;
+}
 
 .input:focus {
   border-color: var(--electric-blue);
@@ -374,22 +454,61 @@ p, .body { font-size: var(--text-body); line-height: 1.6; }
   white-space: nowrap;
 }
 
-.chip-food          { background: var(--cat-food); color: #fff; }
-.chip-travel        { background: var(--cat-travel); color: #fff; }
-.chip-shopping      { background: var(--cat-shopping); color: var(--ink-black); }
-.chip-entertainment { background: var(--cat-entertainment); color: #fff; }
-.chip-health        { background: var(--cat-health); color: #fff; }
-.chip-education     { background: var(--cat-education); color: #fff; }
-.chip-subscriptions { background: var(--cat-subscriptions); color: #fff; }
-.chip-utilities     { background: var(--cat-utilities); color: #fff; }
-.chip-rent          { background: var(--cat-rent); color: #fff; }
-.chip-other         { background: var(--cat-other); color: var(--ink-black); }
+.chip-food {
+  background: var(--cat-food);
+  color: #fff;
+}
+
+.chip-travel {
+  background: var(--cat-travel);
+  color: #fff;
+}
+
+.chip-shopping {
+  background: var(--cat-shopping);
+  color: var(--ink-black);
+}
+
+.chip-entertainment {
+  background: var(--cat-entertainment);
+  color: #fff;
+}
+
+.chip-health {
+  background: var(--cat-health);
+  color: #fff;
+}
+
+.chip-education {
+  background: var(--cat-education);
+  color: #fff;
+}
+
+.chip-subscriptions {
+  background: var(--cat-subscriptions);
+  color: #fff;
+}
+
+.chip-utilities {
+  background: var(--cat-utilities);
+  color: #fff;
+}
+
+.chip-rent {
+  background: var(--cat-rent);
+  color: #fff;
+}
+
+.chip-other {
+  background: var(--cat-other);
+  color: var(--ink-black);
+}
 
 /* Selectable chip */
 .chip-selectable {
   cursor: pointer;
   transition: transform var(--duration-fast) var(--ease-snap),
-              box-shadow var(--duration-fast) var(--ease-snap);
+    box-shadow var(--duration-fast) var(--ease-snap);
 }
 
 .chip-selectable:hover {
@@ -424,9 +543,17 @@ p, .body { font-size: var(--text-body); line-height: 1.6; }
   border-right: var(--border-width) solid var(--ink-black);
 }
 
-.progress-bar.warning { background: var(--signal-yellow); }
-.progress-bar.danger  { background: var(--alert-red); }
-.progress-bar.success { background: var(--mint-green); }
+.progress-bar.warning {
+  background: var(--signal-yellow);
+}
+
+.progress-bar.danger {
+  background: var(--alert-red);
+}
+
+.progress-bar.success {
+  background: var(--mint-green);
+}
 
 /* ─────────────────────────────────────────────────────────────────
    9. ALERT BANNERS
@@ -580,9 +707,13 @@ p, .body { font-size: var(--text-body); line-height: 1.6; }
   transition: background var(--duration-fast);
 }
 
-.tx-row:last-child { border-bottom: none; }
+.tx-row:last-child {
+  border-bottom: none;
+}
 
-.tx-row:hover { background: rgba(46, 94, 255, 0.04); }
+.tx-row:hover {
+  background: rgba(46, 94, 255, 0.04);
+}
 
 .tx-icon {
   width: 2.5rem;
@@ -615,8 +746,13 @@ p, .body { font-size: var(--text-body); line-height: 1.6; }
   flex-shrink: 0;
 }
 
-.tx-amount.negative { color: var(--alert-red); }
-.tx-amount.positive { color: var(--mint-green); }
+.tx-amount.negative {
+  color: var(--alert-red);
+}
+
+.tx-amount.positive {
+  color: var(--mint-green);
+}
 
 /* ─────────────────────────────────────────────────────────────────
    14. AI CHAT ZONE (dark mode)
@@ -675,8 +811,13 @@ p, .body { font-size: var(--text-body); line-height: 1.6; }
   transition: border-color var(--duration-mid);
 }
 
-.ai-input:focus { border-color: var(--lilac-pop); }
-.ai-input::placeholder { color: var(--charcoal-grey); }
+.ai-input:focus {
+  border-color: var(--lilac-pop);
+}
+
+.ai-input::placeholder {
+  color: var(--charcoal-grey);
+}
 
 /* ─────────────────────────────────────────────────────────────────
    15. BADGE / STREAK
@@ -696,10 +837,25 @@ p, .body { font-size: var(--text-body); line-height: 1.6; }
   animation: stamp-in 0.15s var(--ease-snap);
 }
 
-.badge-gold   { background: var(--signal-yellow); color: var(--ink-black); }
-.badge-green  { background: var(--mint-green); color: #fff; }
-.badge-blue   { background: var(--electric-blue); color: #fff; }
-.badge-purple { background: var(--lilac-pop); color: #fff; }
+.badge-gold {
+  background: var(--signal-yellow);
+  color: var(--ink-black);
+}
+
+.badge-green {
+  background: var(--mint-green);
+  color: #fff;
+}
+
+.badge-blue {
+  background: var(--electric-blue);
+  color: #fff;
+}
+
+.badge-purple {
+  background: var(--lilac-pop);
+  color: #fff;
+}
 
 /* Health Score Stamp */
 .health-score-stamp {
@@ -718,7 +874,9 @@ p, .body { font-size: var(--text-body); line-height: 1.6; }
   transition: transform var(--duration-mid) var(--ease-snap);
 }
 
-.health-score-stamp:hover { transform: rotate(0deg); }
+.health-score-stamp:hover {
+  transform: rotate(0deg);
+}
 
 /* ─────────────────────────────────────────────────────────────────
    16. LAYOUT UTILITIES
@@ -727,7 +885,8 @@ p, .body { font-size: var(--text-body); line-height: 1.6; }
 .page {
   max-width: 480px;
   margin: 0 auto;
-  padding: var(--space-3) var(--space-3) 6rem; /* bottom pad for tab bar */
+  padding: var(--space-3) var(--space-3) 6rem;
+  /* bottom pad for tab bar */
 }
 
 .page-header {
@@ -742,9 +901,17 @@ p, .body { font-size: var(--text-body); line-height: 1.6; }
   flex-direction: column;
 }
 
-.stack-sm { gap: var(--space-1); }
-.stack-md { gap: var(--space-2); }
-.stack-lg { gap: var(--space-3); }
+.stack-sm {
+  gap: var(--space-1);
+}
+
+.stack-md {
+  gap: var(--space-2);
+}
+
+.stack-lg {
+  gap: var(--space-3);
+}
 
 .row {
   display: flex;
@@ -764,25 +931,61 @@ p, .body { font-size: var(--text-body); line-height: 1.6; }
    ───────────────────────────────────────────────────────────────── */
 
 @keyframes slide-in-up {
-  from { transform: translateY(24px); opacity: 0; }
-  to   { transform: translateY(0);    opacity: 1; }
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 @keyframes stamp-in {
-  0%   { transform: scale(1.3) rotate(-6deg); opacity: 0; }
-  60%  { transform: scale(0.95) rotate(-3deg); opacity: 1; }
-  100% { transform: scale(1) rotate(-3deg); opacity: 1; }
+  0% {
+    transform: scale(1.3) rotate(-6deg);
+    opacity: 0;
+  }
+
+  60% {
+    transform: scale(0.95) rotate(-3deg);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1) rotate(-3deg);
+    opacity: 1;
+  }
 }
 
 @keyframes alert-shake {
-  0%, 100% { transform: translateX(0); }
-  20%       { transform: translateX(-4px); }
-  40%       { transform: translateX(4px); }
-  60%       { transform: translateX(-3px); }
-  80%       { transform: translateX(3px); }
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  20% {
+    transform: translateX(-4px);
+  }
+
+  40% {
+    transform: translateX(4px);
+  }
+
+  60% {
+    transform: translateX(-3px);
+  }
+
+  80% {
+    transform: translateX(3px);
+  }
 }
 
-.animate-slide-up { animation: slide-in-up 0.2s var(--ease-snap) forwards; }
+.animate-slide-up {
+  animation: slide-in-up 0.2s var(--ease-snap) forwards;
+}
 
 /* Card entrance: hard drop-in */
 .card-enter {
@@ -793,9 +996,18 @@ p, .body { font-size: var(--text-body); line-height: 1.6; }
    18. SCROLLBAR STYLING
    ───────────────────────────────────────────────────────────────── */
 
-::-webkit-scrollbar       { width: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--charcoal-grey); border-radius: 0; }
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--charcoal-grey);
+  border-radius: 0;
+}
 
 /* ─────────────────────────────────────────────────────────────────
    19. SELECTION
@@ -820,6 +1032,11 @@ p, .body { font-size: var(--text-body); line-height: 1.6; }
    ───────────────────────────────────────────────────────────────── */
 
 @keyframes shimmer {
-  0%   { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
 }
