@@ -118,10 +118,9 @@ export default function DashboardPage() {
     <div className="page animate-slide-up">
       {/* ── Balance Ledger Card ── */}
       <div className="ledger-card" style={{ marginBottom: "var(--space-3)" }}>
-        <p className="caption" style={{ marginBottom: "0.25rem" }}>BALANCE LEFT THIS MONTH</p>
-
         {budgetLoading ? (
           <>
+            <p className="caption" style={{ marginBottom: "0.25rem" }}>BALANCE LEFT THIS MONTH</p>
             <Skeleton height="2.5rem" width="60%" style={{ marginBottom: "0.5rem" }} />
             <Skeleton height="0.75rem" width="40%" style={{ marginBottom: "var(--space-2)" }} />
             <Skeleton height="0.5rem" />
@@ -131,15 +130,46 @@ export default function DashboardPage() {
             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "var(--charcoal-grey)" }}>
               <AlertCircle size={16} />
               <p style={{ fontFamily: "var(--font-display)", fontWeight: 700 }}>
+                Could not load budget data
+              </p>
+            </div>
+          </div>
+        ) : totalIncome === 0 ? (
+          <div style={{ padding: "1rem 0" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "var(--charcoal-grey)" }}>
+              <AlertCircle size={16} />
+              <p style={{ fontFamily: "var(--font-display)", fontWeight: 700 }}>
+                No income logged this month
+              </p>
+            </div>
+            <p className="caption" style={{ marginTop: "0.25rem", marginBottom: "1rem" }}>
+              Please add your income first to start managing your budget.
+            </p>
+            <button className="btn btn-secondary" onClick={() => setShowAddIncome(true)}>
+              + Log Income
+            </button>
+          </div>
+        ) : limit === 0 ? (
+          <div style={{ padding: "1rem 0" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "var(--charcoal-grey)" }}>
+              <AlertCircle size={16} />
+              <p style={{ fontFamily: "var(--font-display)", fontWeight: 700 }}>
                 No budget set for this month
               </p>
             </div>
-            <p className="caption" style={{ marginTop: "0.25rem" }}>
-              Go to Budgets tab to set your monthly limit.
+            <p className="caption" style={{ marginTop: "0.25rem", marginBottom: "1rem" }}>
+              Go to the Budgets tab to set your monthly spending limit.
             </p>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "0.5rem", marginTop: "1rem", borderTop: "2px dashed var(--charcoal-grey)", paddingTop: "1rem" }}>
+              <div>
+                <p className="caption">Monthly Income</p>
+                <p style={{ fontFamily: "var(--font-mono)", fontWeight: 700 }}>₹{Math.round(totalIncome).toLocaleString("en-IN")}</p>
+              </div>
+            </div>
           </div>
         ) : (
           <>
+            <p className="caption" style={{ marginBottom: "0.25rem" }}>BALANCE LEFT THIS MONTH</p>
             <p
               className="text-display"
               style={{ fontFamily: "var(--font-display)", lineHeight: 1, marginBottom: "0.5rem" }}
@@ -157,12 +187,23 @@ export default function DashboardPage() {
               <span className="caption">{daysLeft} days left</span>
             </div>
             {/* Progress bar */}
-            <div className="progress-track">
+            <div className="progress-track" style={{ marginBottom: "1rem" }}>
               <div className={barClass} style={{ width: `${Math.min(pct, 100)}%` }} />
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", marginTop: "0.375rem" }}>
-              <span className="caption">₹{Math.round(spent).toLocaleString("en-IN")} spent</span>
-              <span className="caption">of ₹{Math.round(limit).toLocaleString("en-IN")} {isAutoIncome ? "income" : "budget"}</span>
+            
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0.5rem", marginTop: "1rem", borderTop: "2px dashed var(--charcoal-grey)", paddingTop: "1rem" }}>
+              <div>
+                <p className="caption">Income</p>
+                <p style={{ fontFamily: "var(--font-mono)", fontWeight: 700 }}>₹{Math.round(totalIncome).toLocaleString("en-IN")}</p>
+              </div>
+              <div>
+                <p className="caption">Budget</p>
+                <p style={{ fontFamily: "var(--font-mono)", fontWeight: 700 }}>₹{Math.round(limit).toLocaleString("en-IN")}</p>
+              </div>
+              <div>
+                <p className="caption">Spent</p>
+                <p style={{ fontFamily: "var(--font-mono)", fontWeight: 700 }}>₹{Math.round(spent).toLocaleString("en-IN")}</p>
+              </div>
             </div>
           </>
         )}

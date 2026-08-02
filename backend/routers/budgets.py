@@ -51,7 +51,7 @@ async def create_budget(
     if existing:
         existing.overall_limit = payload.overall_limit  # type: ignore
         existing.category_limits = payload.category_limits  # type: ignore
-        existing.is_auto_income = payload.is_auto_income if payload.is_auto_income is not None else True  # type: ignore
+        existing.is_auto_income = False  # type: ignore
         await db.commit()
         await db.refresh(existing)
         return existing
@@ -61,7 +61,7 @@ async def create_budget(
         month=month_start,
         overall_limit=payload.overall_limit,
         category_limits=payload.category_limits,
-        is_auto_income=payload.is_auto_income if payload.is_auto_income is not None else True
+        is_auto_income=False
     )
     db.add(budget)
     await db.commit()
@@ -113,13 +113,12 @@ async def budget_status(
     total_income = Decimal(str(income_rows.scalar_one_or_none() or 0.00))
 
     if not budget:
-        # If no budget is set, assume auto-income
-        overall_limit = total_income
-        is_auto_income = True
+        overall_limit = Decimal("0.00")
+        is_auto_income = False
         cat_limits = {}
     else:
-        is_auto_income = bool(budget.is_auto_income)
-        overall_limit = total_income if is_auto_income else Decimal(str(budget.overall_limit))
+        is_auto_income = False
+        overall_limit = Decimal(str(budget.overall_limit))
         cat_limits = budget.category_limits or {}
 
     # Sum spending per category this month
@@ -188,7 +187,7 @@ async def update_budget(
 
     budget.overall_limit = payload.overall_limit  # type: ignore
     budget.category_limits = payload.category_limits  # type: ignore
-    budget.is_auto_income = payload.is_auto_income if payload.is_auto_income is not None else True  # type: ignore
+    budget.is_auto_income = False  # type: ignore
     await db.commit()
     await db.refresh(budget)
     return budget

@@ -19,14 +19,13 @@ interface Props {
 }
 
 export function EditBudgetModal({ budgetStatus, onClose, onSuccess }: Props) {
-  const [isAutoIncome, setIsAutoIncome] = useState(budgetStatus.is_auto_income ?? true);
   const [customLimit, setCustomLimit] = useState(budgetStatus.overall.limit.toString());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isAutoIncome && !customLimit) {
+    if (!customLimit) {
       setError("Please enter a custom limit.");
       return;
     }
@@ -42,14 +41,13 @@ export function EditBudgetModal({ budgetStatus, onClose, onSuccess }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           month: monthStr,
-          overall_limit: isAutoIncome ? budgetStatus.total_income || 1 : parseFloat(customLimit),
-          is_auto_income: isAutoIncome,
+          overall_limit: parseFloat(customLimit),
+          is_auto_income: false,
         }),
       });
       if (!res.ok) throw new Error("Failed to update budget");
       
       posthog.capture("budget_updated", {
-        is_auto_income: isAutoIncome,
         custom_limit: parseFloat(customLimit),
       });
       
@@ -95,19 +93,6 @@ export function EditBudgetModal({ budgetStatus, onClose, onSuccess }: Props) {
         </div>
 
         <form onSubmit={handleSubmit} className="stack stack-md">
-          <div className="form-group" style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-            <input
-              type="checkbox"
-              id="auto-income"
-              checked={isAutoIncome}
-              onChange={(e) => setIsAutoIncome(e.target.checked)}
-              style={{ width: "1.5rem", height: "1.5rem", accentColor: "var(--ink-black)" }}
-            />
-            <label htmlFor="auto-income" style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "1rem" }}>
-              Use Total Income as Budget
-            </label>
-          </div>
-          
           <div style={{ padding: "0.75rem", background: "var(--ink-black)", color: "var(--paper-white)", borderRadius: "var(--radius)" }}>
             <p className="caption" style={{ color: "var(--paper-white)", opacity: 0.8 }}>TOTAL MONTHLY INCOME</p>
             <p style={{ fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: "1.5rem" }}>
@@ -115,22 +100,20 @@ export function EditBudgetModal({ budgetStatus, onClose, onSuccess }: Props) {
             </p>
           </div>
 
-          {!isAutoIncome && (
-            <div className="form-group" style={{ marginTop: "1rem" }}>
-              <label className="label" htmlFor="custom-limit">Custom Budget Limit (₹)</label>
-              <input
-                id="custom-limit"
-                type="number"
-                min="0"
-                step="1"
-                className="input"
-                placeholder="e.g. 50000"
-                value={customLimit}
-                onChange={(e) => setCustomLimit(e.target.value)}
-                style={{ fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: "1.25rem" }}
-              />
-            </div>
-          )}
+          <div className="form-group" style={{ marginTop: "1rem" }}>
+            <label className="label" htmlFor="custom-limit">Monthly Budget Limit (₹)</label>
+            <input
+              id="custom-limit"
+              type="number"
+              min="0"
+              step="1"
+              className="input"
+              placeholder="e.g. 50000"
+              value={customLimit}
+              onChange={(e) => setCustomLimit(e.target.value)}
+              style={{ fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: "1.25rem" }}
+            />
+          </div>
 
           {error && <div className="alert alert-danger" role="alert">{error}</div>}
 
