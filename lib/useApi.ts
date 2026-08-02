@@ -10,7 +10,7 @@ interface UseApiResult<T> {
 
 /**
  * Lightweight hook that fetches from the FastAPI backend via apiFetch.
- * Automatically attaches the Better Auth session token as Bearer header.
+ * Automatically attaches a JWT Bearer token obtained via Better Auth's JWT plugin.
  *
  * @param path  - API path, e.g. "/expenses?page=1&page_size=5"
  * @param deps  - Extra dependencies that should trigger a re-fetch (default [])

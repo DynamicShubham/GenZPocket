@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { signOut, useSession } from "@/lib/auth-client";
 import posthog from "posthog-js";
 import { useApi } from "@/lib/useApi";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, clearTokenCache } from "@/lib/api";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface UserProfile {
@@ -79,6 +79,7 @@ export default function ProfilePage() {
     if (label === "Sign Out") {
       posthog.capture("user_logged_out");
       posthog.reset();
+      clearTokenCache();
       await signOut();
       router.push("/login");
     }
