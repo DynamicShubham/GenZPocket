@@ -54,6 +54,32 @@ class OCRReceiptResponse(BaseModel):
     receipt_url: Optional[str] = None
 
 # ──────────────────────────────────────────────────────────────────────
+# INCOME SCHEMAS
+# ──────────────────────────────────────────────────────────────────────
+
+class IncomeCreate(BaseModel):
+    amount: Decimal = Field(..., gt=0, description="Income amount")
+    source: str = Field(..., min_length=1, max_length=255)
+    date: Optional[date] = None
+
+    class Config:
+        from_attributes = True
+
+
+class IncomeResponse(BaseModel):
+    id: str
+    user_id: str
+    amount: Decimal
+    source: str
+    month: date
+    date: date
+    is_recurring: bool
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+# ──────────────────────────────────────────────────────────────────────
 # RECURRING EXPENSE SCHEMAS
 # ──────────────────────────────────────────────────────────────────────
 
@@ -88,6 +114,7 @@ class BudgetCreate(BaseModel):
     month: date = Field(..., description="First day of the budget month (YYYY-MM-01)")
     overall_limit: Decimal = Field(..., gt=0)
     category_limits: Optional[Dict[str, Decimal]] = None
+    is_auto_income: Optional[bool] = True
 
 
 class BudgetResponse(BaseModel):
@@ -96,6 +123,7 @@ class BudgetResponse(BaseModel):
     month: date
     overall_limit: Decimal
     category_limits: Optional[Dict[str, Decimal]] = None
+    is_auto_income: bool
 
     class Config:
         from_attributes = True
@@ -117,6 +145,8 @@ class OverallBudgetStatus(BaseModel):
 
 
 class BudgetStatusResponse(BaseModel):
+    total_income: Decimal
+    is_auto_income: bool
     overall: OverallBudgetStatus
     categories: List[CategoryBudgetStatus]
 

@@ -2,11 +2,14 @@
 
 import { TrendingUp, Flame, AlertCircle } from "lucide-react";
 import { AddExpenseModal } from "@/components/expense/AddExpenseModal";
+import { AddIncomeModal } from "@/components/income/AddIncomeModal";
 import { useApi } from "@/lib/useApi";
 import { useState, useCallback } from "react";
 
 // ── Type definitions matching the FastAPI response shapes ──────────────────
 interface BudgetStatus {
+  total_income: number;
+  is_auto_income: boolean;
   overall: {
     limit: number;
     spent: number;
@@ -79,6 +82,7 @@ function daysLeftInMonth(): number {
 
 export default function DashboardPage() {
   const [showAdd, setShowAdd] = useState(false);
+  const [showAddIncome, setShowAddIncome] = useState(false);
   const [expenseTick, setExpenseTick] = useState(0);
 
   const {
@@ -104,6 +108,8 @@ export default function DashboardPage() {
   const remaining = budget?.overall?.remaining ?? 0;
   const spent = budget?.overall?.spent ?? 0;
   const limit = budget?.overall?.limit ?? 0;
+  const totalIncome = budget?.total_income ?? 0;
+  const isAutoIncome = budget?.is_auto_income ?? true;
   const daysLeft = daysLeftInMonth();
   const streak = profile?.streak ?? 0;
   const barClass = pct >= 100 ? "progress-bar danger" : pct >= 80 ? "progress-bar warning" : "progress-bar";
@@ -156,7 +162,7 @@ export default function DashboardPage() {
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", marginTop: "0.375rem" }}>
               <span className="caption">₹{Math.round(spent).toLocaleString("en-IN")} spent</span>
-              <span className="caption">of ₹{Math.round(limit).toLocaleString("en-IN")}</span>
+              <span className="caption">of ₹{Math.round(limit).toLocaleString("en-IN")} {isAutoIncome ? "income" : "budget"}</span>
             </div>
           </>
         )}
@@ -190,15 +196,25 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ── Add Expense CTA ── */}
-      <button
-        className="btn btn-primary"
-        style={{ width: "100%", marginBottom: "var(--space-3)", fontSize: "1rem" }}
-        onClick={() => setShowAdd(true)}
-        id="btn-add-expense"
-      >
-        + Log Expense
-      </button>
+      {/* ── Add Actions ── */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-2)", marginBottom: "var(--space-3)" }}>
+        <button
+          className="btn btn-secondary"
+          style={{ width: "100%", fontSize: "1rem", color: "var(--ink-black)", border: "2px solid var(--ink-black)" }}
+          onClick={() => setShowAddIncome(true)}
+          id="btn-add-income"
+        >
+          + Log Income
+        </button>
+        <button
+          className="btn btn-primary"
+          style={{ width: "100%", fontSize: "1rem" }}
+          onClick={() => setShowAdd(true)}
+          id="btn-add-expense"
+        >
+          + Log Expense
+        </button>
+      </div>
 
       {/* ── Recent Transactions ── */}
       <div>
@@ -253,6 +269,14 @@ export default function DashboardPage() {
       {showAdd && (
         <AddExpenseModal
           onClose={() => setShowAdd(false)}
+          onSuccess={handleExpenseSuccess}
+        />
+      )}
+
+      {/* ── Add Income Modal ── */}
+      {showAddIncome && (
+        <AddIncomeModal
+          onClose={() => setShowAddIncome(false)}
           onSuccess={handleExpenseSuccess}
         />
       )}

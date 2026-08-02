@@ -61,6 +61,7 @@ class User(Base):
 
     # Relationships
     expenses = relationship("Expense", back_populates="user", cascade="all, delete-orphan")
+    incomes = relationship("Income", back_populates="user", cascade="all, delete-orphan")
     budgets = relationship("Budget", back_populates="user", cascade="all, delete-orphan")
     goals = relationship("SavingsGoal", back_populates="user", cascade="all, delete-orphan")
     recurring_expenses = relationship("RecurringExpense", back_populates="user", cascade="all, delete-orphan")
@@ -90,6 +91,24 @@ class Expense(Base):
     user = relationship("User", back_populates="expenses")
 
 
+class Income(Base):
+    __tablename__ = "incomes"
+
+    id = Column(String(255), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String(255), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    
+    amount = Column(Numeric(12, 2), nullable=False)
+    source = Column(String(255), nullable=False)
+    month = Column(Date, nullable=False, default=lambda: date.today().replace(day=1)) # To group incomes by month
+    date = Column(Date, nullable=False, default=date.today)
+    is_recurring = Column(Boolean, default=False, nullable=False)
+    
+    created_at = Column(DateTime, default=utc_now, nullable=False)
+
+    # Relationships
+    user = relationship("User", back_populates="incomes")
+
+
 class Budget(Base):
     __tablename__ = "budgets"
 
@@ -102,6 +121,8 @@ class Budget(Base):
     
     # category_limits will store dict of {CATEGORY_NAME: limit}
     category_limits = Column(JSON, nullable=True)
+    
+    is_auto_income = Column(Boolean, default=True, nullable=False)
     
     created_at = Column(DateTime, default=utc_now, nullable=False)
 

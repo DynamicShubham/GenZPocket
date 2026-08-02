@@ -58,7 +58,7 @@ async def get_current_user(
             """
             SELECT s.userId, s.expiresAt, u.name, u.email, u.image
             FROM session s
-            JOIN user u ON u.id = s.userId
+            JOIN "user" u ON u.id = s.userId
             WHERE s.token = :token
             LIMIT 1
             """

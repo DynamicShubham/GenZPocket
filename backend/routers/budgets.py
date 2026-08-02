@@ -16,7 +16,7 @@ from decimal import Decimal
 from typing import List, Optional
 
 from database import get_db
-from models import Budget, Expense
+from models import Budget, Expense, Income
 from schemas import (
     BudgetCreate,
     BudgetResponse,
@@ -51,6 +51,7 @@ async def create_budget(
     if existing:
         existing.overall_limit = payload.overall_limit
         existing.category_limits = payload.category_limits
+        existing.is_auto_income = payload.is_auto_income if payload.is_auto_income is not None else True
         await db.commit()
         await db.refresh(existing)
         return existing
@@ -60,6 +61,7 @@ async def create_budget(
         month=month_start,
         overall_limit=payload.overall_limit,
         category_limits=payload.category_limits,
+        is_auto_income=payload.is_auto_income if payload.is_auto_income is not None else True
     )
     db.add(budget)
     await db.commit()
@@ -102,11 +104,23 @@ async def budget_status(
         select(Budget).where(Budget.user_id == user_id, Budget.month == month_start)
     )
     budget = result.scalar_one_or_none()
+    
+    # Calculate total income for this month
+    income_rows = await db.execute(
+        select(func.sum(Income.amount))
+        .where(Income.user_id == user_id, Income.month == month_start)
+    )
+    total_income = Decimal(str(income_rows.scalar_one_or_none() or 0.00))
+
     if not budget:
-        raise HTTPException(
-            status_code=404,
-            detail="No budget set for the current month. Create one first.",
-        )
+        # If no budget is set, assume auto-income
+        overall_limit = total_income
+        is_auto_income = True
+        cat_limits = {}
+    else:
+        is_auto_income = budget.is_auto_income
+        overall_limit = total_income if is_auto_income else Decimal(str(budget.overall_limit))
+        cat_limits = budget.category_limits or {}
 
     # Sum spending per category this month
     rows = await db.execute(
@@ -122,11 +136,9 @@ async def budget_status(
         row.category: Decimal(str(row.total)) for row in rows.fetchall()
     }
     overall_spent = sum(category_totals.values(), Decimal("0"))
-    overall_limit = Decimal(str(budget.overall_limit))
 
     # Build category breakdown
     category_breakdown: list[CategoryBudgetStatus] = []
-    cat_limits: dict = budget.category_limits or {}
     for cat_name, limit_val in cat_limits.items():
         limit = Decimal(str(limit_val))
         spent = category_totals.get(cat_name, Decimal("0"))
@@ -144,6 +156,8 @@ async def budget_status(
 
     overall_remaining = max(overall_limit - overall_spent, Decimal("0"))
     return BudgetStatusResponse(
+        total_income=total_income,
+        is_auto_income=is_auto_income,
         overall=OverallBudgetStatus(
             limit=overall_limit,
             spent=overall_spent,
@@ -174,6 +188,7 @@ async def update_budget(
 
     budget.overall_limit = payload.overall_limit
     budget.category_limits = payload.category_limits
+    budget.is_auto_income = payload.is_auto_income if payload.is_auto_income is not None else True
     await db.commit()
     await db.refresh(budget)
     return budget

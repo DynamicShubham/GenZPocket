@@ -25,6 +25,7 @@ from routers.ai import router as ai_router
 from routers.reports import router as reports_router
 from routers.notifications import router as notifications_router
 from routers.users import router as users_router
+from routers.incomes import router as incomes_router
 
 
 app = FastAPI(
@@ -73,6 +74,7 @@ app.include_router(ai_router)
 app.include_router(reports_router)
 app.include_router(notifications_router)
 app.include_router(users_router)
+app.include_router(incomes_router)
 
 # ── Health check ───────────────────────────────────────────────────────────────
 @app.get("/health", tags=["Health"])

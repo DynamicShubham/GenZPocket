@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import posthog from "posthog-js";
+import { EditBudgetModal } from "@/components/budget/EditBudgetModal";
 import { useApi } from "@/lib/useApi";
 
 // ── Type definitions ──────────────────────────────────────────────────────────
@@ -15,6 +16,8 @@ interface CategoryBudget {
 }
 
 interface BudgetStatus {
+  total_income: number;
+  is_auto_income: boolean;
   overall: { limit: number; spent: number; remaining: number; pct: number };
   categories: CategoryBudget[];
 }
@@ -73,8 +76,9 @@ function Skeleton({ height = "1rem", width = "100%" }: { height?: string; width?
 
 export default function BudgetsPage() {
   const [activeTab, setActiveTab] = useState<"budgets" | "goals">("budgets");
+  const [showEditBudget, setShowEditBudget] = useState(false);
 
-  const { data: budget, loading: budgetLoading, error: budgetError } = useApi<BudgetStatus>("/budgets/status");
+  const { data: budget, loading: budgetLoading, error: budgetError, refetch: refetchBudget } = useApi<BudgetStatus>("/budgets/status");
   const { data: goals, loading: goalsLoading } = useApi<SavingsGoal[]>("/goals");
 
   const overall = {
@@ -90,7 +94,11 @@ export default function BudgetsPage() {
     <div className="page animate-slide-up">
       <div className="page-header">
         <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "1.75rem" }}>Budget &amp; Goals</h1>
-        <button className="btn btn-secondary" style={{ padding: "0.5rem 1rem", fontSize: "0.875rem" }}>
+        <button 
+          className="btn btn-secondary" 
+          style={{ padding: "0.5rem 1rem", fontSize: "0.875rem" }}
+          onClick={() => setShowEditBudget(true)}
+        >
           <Plus size={14} /> Edit
         </button>
       </div>
@@ -264,6 +272,14 @@ export default function BudgetsPage() {
             <Plus size={16} /> Add New Goal
           </button>
         </div>
+      )}
+
+      {showEditBudget && budget && (
+        <EditBudgetModal
+          budgetStatus={budget}
+          onClose={() => setShowEditBudget(false)}
+          onSuccess={refetchBudget}
+        />
       )}
     </div>
   );
