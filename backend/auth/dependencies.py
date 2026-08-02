@@ -1,9 +1,9 @@
 """
-Better Auth JWT verification dependency for FastAPI.
+Better Auth JWT verification dependency for FastAPI using JWKS.
 
-Better Auth (Next.js) issues short-lived JWTs signed with BETTER_AUTH_SECRET.
-FastAPI validates the JWT signature and extracts the user identity from the
-token payload — no cookies, no session table lookups.
+FastAPI retrieves Better Auth's public keys from the JWKS endpoint
+and validates incoming JWT signatures (EdDSA/RS256/etc) dynamically,
+avoiding the use of BETTER_AUTH_SECRET.
 """
 
 import os
@@ -13,20 +13,20 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
-from jose import jwt, JWTError
+import jwt
+from jwt.exceptions import PyJWTError
 
 from database import get_db
 
 # ── Configuration ──────────────────────────────────────────────────────────────
-BETTER_AUTH_SECRET = os.getenv("BETTER_AUTH_SECRET", "")
-if not BETTER_AUTH_SECRET:
-    raise RuntimeError(
-        "BETTER_AUTH_SECRET environment variable is required for JWT verification. "
-        "Set it to the same value used by Better Auth in the Next.js frontend."
-    )
+# Retrieve the Better Auth URL. In development, it defaults to http://localhost:3000.
+# In production, this should point to your Next.js application URL.
+BETTER_AUTH_URL = os.getenv("BETTER_AUTH_URL", "http://localhost:3000").rstrip("/")
+JWKS_URL = os.getenv("BETTER_AUTH_JWKS_URL") or f"{BETTER_AUTH_URL}/api/auth/jwks"
 
-# Better Auth JWT plugin signs with HS256 by default when using the secret
-JWT_ALGORITHM = "HS256"
+# Initialize PyJWKClient. It automatically handles fetching and caching JWK keys.
+print(f"[DEBUG AUTH] Initializing JWKS client pointing to: {JWKS_URL}")
+jwks_client = jwt.PyJWKClient(JWKS_URL, cache_keys=True)
 
 _bearer = HTTPBearer(auto_error=True)
 
@@ -38,30 +38,35 @@ async def get_current_user(
     """
     FastAPI dependency that:
     1. Extracts the JWT from the Authorization: Bearer header.
-    2. Verifies the JWT signature using BETTER_AUTH_SECRET.
-    3. Extracts user identity from the JWT payload.
-    4. Auto-provisions (upserts) the user into the app `users` table.
-    5. Returns the string user_id for use in route handlers.
+    2. Dynamically fetches the signing key from Better Auth's JWKS endpoint.
+    3. Verifies the JWT signature (EdDSA/RS256/etc) and validates claims.
+    4. Extracts user identity from the JWT payload.
+    5. Auto-provisions (upserts) the user into the app `users` table.
+    6. Returns the string user_id for use in route handlers.
     """
     token = credentials.credentials
 
     # ── 1. Verify and decode the JWT ───────────────────────────────────────
     try:
-        header = jwt.get_unverified_header(token)
-        print(f"[DEBUG AUTH] Incoming JWT header: {header}")
-        
-        # Try decoding with verify_signature=False first to see payload
-        unverified_payload = jwt.get_unverified_claims(token)
-        print(f"[DEBUG AUTH] Incoming JWT payload: {unverified_payload}")
+        # Print token header for diagnostic logs
+        unverified_header = jwt.get_unverified_header(token)
+        print(f"[DEBUG AUTH] Incoming JWT header: {unverified_header}")
 
+        # Retrieve the public key matching the kid in the JWT header
+        signing_key = jwks_client.get_signing_key_from_jwt(token)
+        
+        # Verify the signature against the public key
+        # Better Auth uses EdDSA (Ed25519) by default for public/private key signing.
         payload = jwt.decode(
             token,
-            BETTER_AUTH_SECRET,
-            algorithms=[header.get("alg", JWT_ALGORITHM), JWT_ALGORITHM, "EdDSA", "RS256", "ES256"],
+            signing_key.key,
+            algorithms=["EdDSA", "RS256", "ES256"],
             options={"verify_aud": False}
         )
+        print(f"[DEBUG AUTH] Incoming JWT payload verified: {payload}")
+
     except Exception as e:
-        print(f"[DEBUG AUTH ERROR] JWT decode failed: {type(e).__name__}: {e}")
+        print(f"[DEBUG AUTH ERROR] JWT verification failed: {type(e).__name__}: {e}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Invalid or expired token: {e}",
@@ -97,9 +102,10 @@ async def get_current_user(
             "id": user_id,
             "email": email,
             "name": name,
-            "now": datetime.now(timezone.utc).isoformat(),
+            "now": datetime.now(timezone.utc),
         },
     )
     await db.commit()
 
     return user_id
+
