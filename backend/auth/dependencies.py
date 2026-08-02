@@ -7,7 +7,7 @@ avoiding the use of BETTER_AUTH_SECRET.
 """
 
 import os
-from datetime import datetime, timezone
+from datetime import datetime
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -102,7 +102,7 @@ async def get_current_user(
             "id": user_id,
             "email": email,
             "name": name,
-            "now": datetime.now(timezone.utc),
+            "now": datetime.now(),
         },
     )
     await db.commit()
