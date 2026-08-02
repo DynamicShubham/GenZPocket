@@ -9,7 +9,7 @@ from models import ExpenseCategory, RecurringFrequency, NotificationType
 # ──────────────────────────────────────────────────────────────────────
 
 class ExpenseCreate(BaseModel):
-    amount: Decimal = Field(..., gt=0, description="Expense amount (positive number)")
+    amount: Decimal = Field(..., gt=Decimal("0"), description="Expense amount (positive number)")
     category: Optional[ExpenseCategory] = None  # If omitted, auto-categorized from merchant
     merchant: str = Field(..., min_length=1, max_length=255)
     note: Optional[str] = Field(None, max_length=1024)
@@ -21,7 +21,7 @@ class ExpenseCreate(BaseModel):
 
 class ExpenseUpdate(BaseModel):
     """Partial update schema — all fields are optional."""
-    amount: Optional[Decimal] = Field(None, gt=0)
+    amount: Optional[Decimal] = Field(None, gt=Decimal("0"))
     category: Optional[ExpenseCategory] = None
     merchant: Optional[str] = Field(None, min_length=1, max_length=255)
     note: Optional[str] = Field(None, max_length=1024)
@@ -58,7 +58,7 @@ class OCRReceiptResponse(BaseModel):
 # ──────────────────────────────────────────────────────────────────────
 
 class IncomeCreate(BaseModel):
-    amount: Decimal = Field(..., gt=0, description="Income amount")
+    amount: Decimal = Field(..., gt=Decimal("0"), description="Income amount")
     source: str = Field(..., min_length=1, max_length=255)
     date: Optional[date] = None
 
@@ -84,7 +84,7 @@ class IncomeResponse(BaseModel):
 # ──────────────────────────────────────────────────────────────────────
 
 class RecurringExpenseCreate(BaseModel):
-    amount: Decimal = Field(..., gt=0)
+    amount: Decimal = Field(..., gt=Decimal("0"))
     category: ExpenseCategory
     merchant: str = Field(..., min_length=1, max_length=255)
     note: Optional[str] = None
@@ -112,7 +112,7 @@ class RecurringExpenseResponse(BaseModel):
 
 class BudgetCreate(BaseModel):
     month: date = Field(..., description="First day of the budget month (YYYY-MM-01)")
-    overall_limit: Decimal = Field(..., gt=0)
+    overall_limit: Decimal = Field(..., gt=Decimal("0"))
     category_limits: Optional[Dict[str, Decimal]] = None
     is_auto_income: Optional[bool] = True
 
@@ -156,7 +156,7 @@ class BudgetStatusResponse(BaseModel):
 
 class SavingsGoalCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
-    target_amount: Decimal = Field(..., gt=0)
+    target_amount: Decimal = Field(..., gt=Decimal("0"))
     deadline: date
 
 
@@ -175,8 +175,8 @@ class SavingsGoalResponse(BaseModel):
 class SavingsGoalUpdate(BaseModel):
     """Partial update — add savings, change target, or update deadline."""
     name: Optional[str] = Field(None, min_length=1, max_length=255)
-    target_amount: Optional[Decimal] = Field(None, gt=0)
-    current_amount: Optional[Decimal] = Field(None, ge=0)
+    target_amount: Optional[Decimal] = Field(None, gt=Decimal("0"))
+    current_amount: Optional[Decimal] = Field(None, ge=Decimal("0"))
     deadline: Optional[date] = None
 
     class Config:

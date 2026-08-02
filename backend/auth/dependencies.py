@@ -14,7 +14,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 import jwt
-from jwt.exceptions import PyJWTError
+from jwt.exceptions import PyJWTError  # type: ignore
 
 from database import get_db
 
@@ -26,7 +26,7 @@ JWKS_URL = os.getenv("BETTER_AUTH_JWKS_URL") or f"{BETTER_AUTH_URL}/api/auth/jwk
 
 # Initialize PyJWKClient. It automatically handles fetching and caching JWK keys.
 print(f"[DEBUG AUTH] Initializing JWKS client pointing to: {JWKS_URL}")
-jwks_client = jwt.PyJWKClient(JWKS_URL, cache_keys=True)
+jwks_client = jwt.PyJWKClient(JWKS_URL, cache_keys=True)  # type: ignore
 
 _bearer = HTTPBearer(auto_error=True)
 
@@ -49,7 +49,7 @@ async def get_current_user(
     # ── 1. Verify and decode the JWT ───────────────────────────────────────
     try:
         # Print token header for diagnostic logs
-        unverified_header = jwt.get_unverified_header(token)
+        unverified_header = jwt.get_unverified_header(token)  # type: ignore
         print(f"[DEBUG AUTH] Incoming JWT header: {unverified_header}")
 
         # Retrieve the public key matching the kid in the JWT header
@@ -57,7 +57,7 @@ async def get_current_user(
         
         # Verify the signature against the public key
         # Better Auth uses EdDSA (Ed25519) by default for public/private key signing.
-        payload = jwt.decode(
+        payload = jwt.decode(  # type: ignore
             token,
             signing_key.key,
             algorithms=["EdDSA", "RS256", "ES256"],

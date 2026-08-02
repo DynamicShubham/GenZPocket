@@ -143,8 +143,8 @@ async def chat(
         )
 
     # Persist messages
-    messages.append({"role": "user", "content": payload.message, "timestamp": datetime.now(timezone.utc).isoformat()})
-    messages.append({"role": "assistant", "content": reply, "timestamp": datetime.now(timezone.utc).isoformat()})
+    messages.append({"role": "user", "content": payload.message, "timestamp": datetime.now().isoformat()})
+    messages.append({"role": "assistant", "content": reply, "timestamp": datetime.now().isoformat()})
     conversation.messages = messages
 
     await db.commit()

@@ -88,7 +88,7 @@ async def generate_monthly_report(user_id: str, db: AsyncSession) -> MonthlyRepo
         "category_breakdown": category_totals,
         "distinct_logging_days": distinct_days,
         "overall_limit": overall_limit,
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": datetime.now().isoformat(),
     }
 
     # ── Upsert report ─────────────────────────────────────────────────────────

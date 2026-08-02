@@ -10,7 +10,7 @@ Endpoints:
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, text
+from sqlalchemy import select, text, func
 from datetime import date
 from decimal import Decimal
 from typing import List, Optional
@@ -49,9 +49,9 @@ async def create_budget(
     existing = result.scalar_one_or_none()
 
     if existing:
-        existing.overall_limit = payload.overall_limit
-        existing.category_limits = payload.category_limits
-        existing.is_auto_income = payload.is_auto_income if payload.is_auto_income is not None else True
+        existing.overall_limit = payload.overall_limit  # type: ignore
+        existing.category_limits = payload.category_limits  # type: ignore
+        existing.is_auto_income = payload.is_auto_income if payload.is_auto_income is not None else True  # type: ignore
         await db.commit()
         await db.refresh(existing)
         return existing
@@ -118,7 +118,7 @@ async def budget_status(
         is_auto_income = True
         cat_limits = {}
     else:
-        is_auto_income = budget.is_auto_income
+        is_auto_income = bool(budget.is_auto_income)
         overall_limit = total_income if is_auto_income else Decimal(str(budget.overall_limit))
         cat_limits = budget.category_limits or {}
 
@@ -186,9 +186,9 @@ async def update_budget(
     if not budget:
         raise HTTPException(status_code=404, detail="Budget not found.")
 
-    budget.overall_limit = payload.overall_limit
-    budget.category_limits = payload.category_limits
-    budget.is_auto_income = payload.is_auto_income if payload.is_auto_income is not None else True
+    budget.overall_limit = payload.overall_limit  # type: ignore
+    budget.category_limits = payload.category_limits  # type: ignore
+    budget.is_auto_income = payload.is_auto_income if payload.is_auto_income is not None else True  # type: ignore
     await db.commit()
     await db.refresh(budget)
     return budget
