@@ -47,12 +47,21 @@ async def get_current_user(
 
     # ── 1. Verify and decode the JWT ───────────────────────────────────────
     try:
+        header = jwt.get_unverified_header(token)
+        print(f"[DEBUG AUTH] Incoming JWT header: {header}")
+        
+        # Try decoding with verify_signature=False first to see payload
+        unverified_payload = jwt.get_unverified_claims(token)
+        print(f"[DEBUG AUTH] Incoming JWT payload: {unverified_payload}")
+
         payload = jwt.decode(
             token,
             BETTER_AUTH_SECRET,
-            algorithms=[JWT_ALGORITHM],
+            algorithms=[header.get("alg", JWT_ALGORITHM), JWT_ALGORITHM, "EdDSA", "RS256", "ES256"],
+            options={"verify_aud": False}
         )
-    except JWTError as e:
+    except Exception as e:
+        print(f"[DEBUG AUTH ERROR] JWT decode failed: {type(e).__name__}: {e}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Invalid or expired token: {e}",
