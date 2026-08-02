@@ -30,8 +30,9 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -43,5 +44,15 @@ next-env.d.ts
 # Sentry Config File
 .env.sentry-build-plugin
 
-.vercel
-.env*
+# Python
+__pycache__/
+*.pyc
+*.pyo
+backend/.venv/
+backend/genzpocket.db
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# IDE
+.vscode/
+.idea/
