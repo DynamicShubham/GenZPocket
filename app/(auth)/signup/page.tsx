@@ -111,6 +111,20 @@ export default function SignupPage() {
           <p className="caption" style={{ textAlign: "center", marginTop: "var(--space-2)" }}>
             By signing up you agree to our Privacy Policy. No hidden fees, ever.
           </p>
+
+          <div className="divider" style={{ marginTop: "var(--space-3)", marginBottom: "var(--space-3)" }} />
+
+          <button
+            className="btn btn-secondary"
+            style={{ width: "100%" }}
+            onClick={async () => {
+              posthog.capture("user_signed_up", { method: "google" });
+              await authClient.signIn.social({ provider: "google" });
+            }}
+            id="btn-google-signup"
+          >
+            <span>G</span> Continue with Google
+          </button>
         </div>
 
         <p style={{ textAlign: "center", marginTop: "var(--space-2)", fontFamily: "var(--font-display)", fontSize: "0.875rem" }}>

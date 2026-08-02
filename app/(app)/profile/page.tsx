@@ -101,6 +101,23 @@ export default function ProfilePage() {
     URL.revokeObjectURL(url);
   };
 
+  if (!session && !profileLoading) {
+    return (
+      <div className="page animate-slide-up" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "60vh", textAlign: "center" }}>
+        <p style={{ fontSize: "3rem", marginBottom: "1rem" }}>🔒</p>
+        <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "1.5rem", marginBottom: "0.5rem" }}>
+          Sign In First
+        </h1>
+        <p className="caption" style={{ marginBottom: "1.5rem" }}>
+          You need to be logged in to view your profile and reports.
+        </p>
+        <button className="btn btn-primary" onClick={() => router.push("/login")}>
+          Go to Log In →
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="page animate-slide-up">
       {/* ── User Info ── */}
