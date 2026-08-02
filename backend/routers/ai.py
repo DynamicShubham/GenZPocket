@@ -13,7 +13,7 @@ import os
 import json
 from datetime import date, datetime, timezone
 from decimal import Decimal
-from typing import Optional
+from typing import Optional, cast, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -73,7 +73,7 @@ async def _get_user_context(user_id: str, db: AsyncSession) -> str:
     )
     budget = budget_result.scalar_one_or_none()
     budget_info = (
-        f"Monthly budget: ₹{float(budget.overall_limit):.0f}, spent so far: ₹{total_spent:.0f}"
+        f"Monthly budget: ₹{float(cast(Decimal, budget.overall_limit)):.0f}, spent so far: ₹{total_spent:.0f}"
         if budget
         else "No budget set for this month."
     )
@@ -114,7 +114,7 @@ async def chat(
         db.add(conversation)
         await db.flush()  # get the ID
 
-    messages: list = list(conversation.messages)
+    messages: list = list(cast(list, conversation.messages))
 
     # Build context for first message in session
     context = await _get_user_context(user_id, db)
@@ -131,7 +131,7 @@ async def chat(
     try:
         response = await _client.chat.completions.create(
             model="gpt-4o-mini",  # fast, cost-effective for chat
-            messages=openai_messages,
+            messages=cast(Any, openai_messages),
             max_tokens=400,
             temperature=0.7,
         )
@@ -145,12 +145,12 @@ async def chat(
     # Persist messages
     messages.append({"role": "user", "content": payload.message, "timestamp": datetime.now().isoformat()})
     messages.append({"role": "assistant", "content": reply, "timestamp": datetime.now().isoformat()})
-    conversation.messages = messages
+    conversation.messages = cast(Any, messages)
 
     await db.commit()
     await db.refresh(conversation)
 
-    return ChatResponse(reply=reply, conversation_id=conversation.id)
+    return ChatResponse(reply=reply, conversation_id=str(conversation.id))
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -292,8 +292,9 @@ async def affordability_check(
         ),
         {"uid": user_id, "start": month_start.isoformat(), "today": today.isoformat()},
     )
-    total_spent = float(spent_result.fetchone().total)
-    remaining = float(budget.overall_limit) - total_spent
+    spent_row = spent_result.fetchone()
+    total_spent = float(spent_row.total) if spent_row is not None else 0.0
+    remaining = float(cast(Decimal, budget.overall_limit)) - total_spent
 
     # Days logic
     import calendar

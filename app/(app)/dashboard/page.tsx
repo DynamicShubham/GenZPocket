@@ -83,26 +83,26 @@ function daysLeftInMonth(): number {
 export default function DashboardPage() {
   const [showAdd, setShowAdd] = useState(false);
   const [showAddIncome, setShowAddIncome] = useState(false);
-  const [expenseTick, setExpenseTick] = useState(0);
-
   const {
     data: budget,
     loading: budgetLoading,
     error: budgetError,
+    refetch: refetchBudget,
   } = useApi<BudgetStatus>("/budgets/status");
 
   const {
     data: transactions,
     loading: txLoading,
     refetch: refetchTx,
-  } = useApi<Expense[]>("/expenses?page=1&page_size=5", [expenseTick]);
+  } = useApi<Expense[]>("/expenses?page=1&page_size=5");
 
-  const { data: profile } = useApi<UserProfile>("/users/me");
+  const { data: profile, refetch: refetchProfile } = useApi<UserProfile>("/users/me");
 
   const handleExpenseSuccess = useCallback(() => {
-    setExpenseTick((t) => t + 1);
     refetchTx();
-  }, [refetchTx]);
+    refetchBudget();
+    refetchProfile();
+  }, [refetchTx, refetchBudget, refetchProfile]);
 
   const pct = budget?.overall?.pct ?? 0;
   const remaining = budget?.overall?.remaining ?? 0;

@@ -12,6 +12,7 @@ Health Score Algorithm (0–100):
 
 from datetime import date, datetime, timezone
 from decimal import Decimal
+from typing import cast, Any
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, text, func
 
@@ -51,8 +52,8 @@ async def generate_monthly_report(user_id: str, db: AsyncSession) -> MonthlyRepo
         select(Budget).where(Budget.user_id == user_id, Budget.month == month_start)
     )
     budget = budget_result.scalar_one_or_none()
-    overall_limit = float(budget.overall_limit) if budget else 0.0
-    cat_limits: dict = budget.category_limits or {} if budget else {}
+    overall_limit = float(cast(Decimal, budget.overall_limit)) if budget else 0.0
+    cat_limits: dict = cast(dict, budget.category_limits) if (budget and budget.category_limits) else {}
 
     # ── Health Score Calculation ──────────────────────────────────────────────
     score = 0
@@ -101,10 +102,10 @@ async def generate_monthly_report(user_id: str, db: AsyncSession) -> MonthlyRepo
     report = existing_result.scalar_one_or_none()
 
     if report:
-        report.total_expenses = Decimal(str(total_expenses))
-        report.savings = Decimal(str(savings))
-        report.health_score = health_score
-        report.report_data = report_data
+        report.total_expenses = cast(Any, Decimal(str(total_expenses)))
+        report.savings = cast(Any, Decimal(str(savings)))
+        report.health_score = cast(Any, health_score)
+        report.report_data = cast(Any, report_data)
     else:
         report = MonthlyReport(
             user_id=user_id,
