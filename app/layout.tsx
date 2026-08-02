@@ -1,31 +1,11 @@
 import type { Metadata } from "next";
-import { Space_Grotesk, Inter, IBM_Plex_Mono } from "next/font/google";
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import "./globals.css";
 
-/* ── Space Grotesk — Display / Headlines / Big numbers ── */
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-space-grotesk",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-});
-
-/* ── Inter — Body / UI text ── */
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  display: "swap",
-});
-
-/* ── IBM Plex Mono — Data / Tabular / Currency amounts ── */
-const ibmPlexMono = IBM_Plex_Mono({
-  variable: "--font-ibm-plex-mono",
-  subsets: ["latin"],
-  weight: ["400", "500", "700"],
-  display: "swap",
-});
+/* ── Fonts are loaded via Google Fonts link tags below ── */
+const spaceGroteskVar = "font-space-grotesk";
+const interVar = "font-inter";
+const ibmPlexMonoVar = "font-ibm-plex-mono";
 
 export const metadata: Metadata = {
   title: "GenZPocket — Smart Expense Tracker for College Students",
@@ -41,10 +21,16 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${spaceGrotesk.variable} ${inter.variable} ${ibmPlexMono.variable} h-full antialiased`}
+      className={`${spaceGroteskVar} ${interVar} ${ibmPlexMonoVar} h-full antialiased`}
     >
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=Inter:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+      </head>
       <body className="min-h-full flex flex-col bg-paper-white text-ink-black">
         {children}
+        <SpeedInsights />
       </body>
     </html>
   );

@@ -5,8 +5,12 @@
 
 @import "tailwindcss";
 
-/* ── Google Fonts (Space Grotesk, Inter, IBM Plex Mono) are loaded
-      via next/font in layout.tsx — no @import needed here ── */
+/* ── Fonts are loaded via Google Fonts link tags in layout.tsx ── */
+:root {
+  --font-space-grotesk: "Space Grotesk", system-ui, sans-serif;
+  --font-inter: "Inter", system-ui, sans-serif;
+  --font-ibm-plex-mono: "IBM Plex Mono", monospace;
+}
 
 /* ─────────────────────────────────────────────────────────────────
    1. CSS CUSTOM PROPERTIES (Design Tokens)
