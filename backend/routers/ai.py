@@ -16,6 +16,8 @@ from decimal import Decimal
 from typing import Optional, cast, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi_limiter.depends import RateLimiter
+from pyrate_limiter import Limiter, Rate, Duration
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, text
 from openai import AsyncOpenAI
@@ -91,7 +93,7 @@ async def _get_user_context(user_id: str, db: AsyncSession) -> str:
 # CHAT
 # ─────────────────────────────────────────────────────────────────────────────
 
-@router.post("/chat", response_model=ChatResponse)
+@router.post("/chat", response_model=ChatResponse, dependencies=[Depends(RateLimiter(Limiter(Rate(5, Duration.MINUTE))))])
 async def chat(
     payload: ChatRequest,
     db: AsyncSession = Depends(get_db),

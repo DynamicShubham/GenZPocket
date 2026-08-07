@@ -123,7 +123,7 @@ async def budget_status(
 
     # Sum spending per category this month
     rows = await db.execute(
-        select(Expense.category, text("SUM(amount) as total"))
+        select(Expense.category, func.sum(Expense.amount).label("total"))
         .where(
             Expense.user_id == user_id,
             Expense.date >= month_start,

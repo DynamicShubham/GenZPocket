@@ -6,6 +6,7 @@ Endpoints:
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi_cache.decorator import cache
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import List
@@ -19,6 +20,7 @@ router = APIRouter(prefix="/users", tags=["Users"])
 
 
 @router.get("/me", response_model=UserProfileResponse)
+@cache(expire=60)
 async def get_me(
     db: AsyncSession = Depends(get_db),
     user_id: str = Depends(get_current_user),

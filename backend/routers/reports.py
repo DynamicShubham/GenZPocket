@@ -8,6 +8,8 @@ Endpoints:
 """
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi_limiter.depends import RateLimiter
+from pyrate_limiter import Limiter, Rate, Duration
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, text
 from datetime import date
@@ -60,7 +62,7 @@ async def get_report(
     return report
 
 
-@router.post("/generate", response_model=MonthlyReportResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/generate", response_model=MonthlyReportResponse, status_code=status.HTTP_201_CREATED, dependencies=[Depends(RateLimiter(Limiter(Rate(2, Duration.MINUTE))))])
 async def generate_report(
     db: AsyncSession = Depends(get_db),
     user_id: str = Depends(get_current_user),

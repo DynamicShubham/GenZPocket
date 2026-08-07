@@ -8,8 +8,16 @@ Runs background tasks for:
 """
 
 import os
+from pathlib import Path
 from celery import Celery
 from celery.schedules import crontab
+from dotenv import load_dotenv
+
+# Load .env so REDIS_URL is available when Celery runs as a standalone process
+backend_dir = Path(__file__).resolve().parent
+load_dotenv(backend_dir / ".env")
+if (backend_dir.parent / ".env.local").exists():
+    load_dotenv(backend_dir.parent / ".env.local")
 
 redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
@@ -20,12 +28,22 @@ celery_app = Celery(
     include=["tasks"],
 )
 
+# Enable TLS if using rediss:// (e.g. Upstash)
+_ssl_config = {}
+if redis_url.startswith("rediss://"):
+    import ssl
+    _ssl_config = {
+        "broker_use_ssl": {"ssl_cert_reqs": ssl.CERT_REQUIRED},
+        "redis_backend_use_ssl": {"ssl_cert_reqs": ssl.CERT_REQUIRED},
+    }
+
 celery_app.conf.update(
     task_serializer="json",
     accept_content=["json"],
     result_serializer="json",
     timezone="UTC",
     enable_utc=True,
+    **_ssl_config,
     beat_schedule={
         # Run daily at 00:05 UTC to auto-apply due recurring expenses (Task 4.3)
         "apply-due-recurring-expenses-daily": {

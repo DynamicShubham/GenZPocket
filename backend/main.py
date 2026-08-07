@@ -13,9 +13,13 @@ load_dotenv(backend_dir / ".env")
 if (backend_dir.parent / ".env.local").exists():
     load_dotenv(backend_dir.parent / ".env.local")
 
+from contextlib import asynccontextmanager
+import redis.asyncio as aioredis
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi_cache import FastAPICache
+from fastapi_cache.backends.redis import RedisBackend
 
 from routers.expenses import router as expenses_router
 from routers.budgets import router as budgets_router
@@ -28,12 +32,31 @@ from routers.users import router as users_router
 from routers.incomes import router as incomes_router
 
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+    redis_client = aioredis.from_url(redis_url, encoding="utf8", decode_responses=True)
+    try:
+        FastAPICache.init(RedisBackend(redis_client), prefix="genzpocket-cache")
+        print("Redis caching initialized successfully.")
+    except Exception as e:
+        print(f"Warning: Could not connect to Redis at {redis_url} ({e}). Caching will be inactive.")
+    
+    yield
+
+    try:
+        await redis_client.close()
+    except Exception:
+        pass
+
+
 app = FastAPI(
     title="GenZPocket API",
     description="Backend API for GenZPocket — Smart Expense Tracker for College Students",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
+    lifespan=lifespan,
 )
 
 # ── Mount static files for local uploads ──────────────────────────────────────
