@@ -4,16 +4,16 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Home,
+  Wallet,
   BarChart2,
-  PlusCircle,
   Bot,
   User,
 } from "lucide-react";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Home",      icon: Home },
+  { href: "/budgets",   label: "Budgets",   icon: Wallet },
   { href: "/analytics", label: "Analytics", icon: BarChart2 },
-  { href: "/dashboard", label: "Add",       icon: PlusCircle, isAction: true },
   { href: "/ai",        label: "AI",        icon: Bot },
   { href: "/profile",   label: "Me",        icon: User },
 ];

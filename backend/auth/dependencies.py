@@ -25,10 +25,14 @@ BETTER_AUTH_URL = os.getenv("BETTER_AUTH_URL", "http://localhost:3000").rstrip("
 JWKS_URL = os.getenv("BETTER_AUTH_JWKS_URL") or f"{BETTER_AUTH_URL}/api/auth/jwks"
 
 # Initialize PyJWKClient. It automatically handles fetching and caching JWK keys.
-print(f"[DEBUG AUTH] Initializing JWKS client pointing to: {JWKS_URL}")
 jwks_client = jwt.PyJWKClient(JWKS_URL, cache_keys=True)  # type: ignore
 
 _bearer = HTTPBearer(auto_error=True)
+
+# ── In-memory cache of user IDs that have already been upserted ────────────────
+# Avoids a DB write round-trip on every single authenticated request.
+# Resets when the server restarts, which is fine — the upsert is idempotent.
+_known_users: set[str] = set()
 
 
 async def get_current_user(
@@ -41,17 +45,13 @@ async def get_current_user(
     2. Dynamically fetches the signing key from Better Auth's JWKS endpoint.
     3. Verifies the JWT signature (EdDSA/RS256/etc) and validates claims.
     4. Extracts user identity from the JWT payload.
-    5. Auto-provisions (upserts) the user into the app `users` table.
+    5. Auto-provisions (upserts) the user into the app `users` table (first time only).
     6. Returns the string user_id for use in route handlers.
     """
     token = credentials.credentials
 
     # ── 1. Verify and decode the JWT ───────────────────────────────────────
     try:
-        # Print token header for diagnostic logs
-        unverified_header = jwt.get_unverified_header(token)  # type: ignore
-        print(f"[DEBUG AUTH] Incoming JWT header: {unverified_header}")
-
         # Retrieve the public key matching the kid in the JWT header
         signing_key = jwks_client.get_signing_key_from_jwt(token)
         
@@ -63,10 +63,8 @@ async def get_current_user(
             algorithms=["EdDSA", "RS256", "ES256"],
             options={"verify_aud": False}
         )
-        print(f"[DEBUG AUTH] Incoming JWT payload verified: {payload}")
 
     except Exception as e:
-        print(f"[DEBUG AUTH ERROR] JWT verification failed: {type(e).__name__}: {e}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Invalid or expired token: {e}",
@@ -82,30 +80,31 @@ async def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    email = payload.get("email", "")
-    name = payload.get("name", "")
+    # ── 3. Upsert into application `users` table (first encounter only) ───
+    # Skip the DB write if we've already seen this user this server lifetime.
+    if user_id not in _known_users:
+        email = payload.get("email", "")
+        name = payload.get("name", "")
 
-    # ── 3. Upsert into application `users` table ──────────────────────────
-    # Using raw SQL for simplicity since the `users` table uses different
-    # column names from the Better Auth `user` table.
-    await db.execute(
-        text(
-            """
-            INSERT INTO users (id, email, name, avatar_url, currency, streak, created_at, updated_at)
-            VALUES (:id, :email, :name, NULL, 'INR', 0, :now, :now)
-            ON CONFLICT(id) DO UPDATE SET
-                name = excluded.name,
-                updated_at = excluded.updated_at
-            """
-        ),
-        {
-            "id": user_id,
-            "email": email,
-            "name": name,
-            "now": datetime.now(),
-        },
-    )
-    await db.commit()
+        await db.execute(
+            text(
+                """
+                INSERT INTO users (id, email, name, avatar_url, currency, streak, created_at, updated_at)
+                VALUES (:id, :email, :name, NULL, 'INR', 0, :now, :now)
+                ON CONFLICT(id) DO UPDATE SET
+                    name = excluded.name,
+                    updated_at = excluded.updated_at
+                """
+            ),
+            {
+                "id": user_id,
+                "email": email,
+                "name": name,
+                "now": datetime.now(),
+            },
+        )
+        await db.commit()
+        _known_users.add(user_id)
 
     return user_id
 

@@ -1,8 +1,9 @@
 "use client";
 
-import { TrendingUp, Flame, AlertCircle } from "lucide-react";
+import { TrendingUp, Flame, AlertCircle, Edit3 } from "lucide-react";
 import { AddExpenseModal } from "@/components/expense/AddExpenseModal";
 import { AddIncomeModal } from "@/components/income/AddIncomeModal";
+import { EditBudgetModal } from "@/components/budget/EditBudgetModal";
 import { useApi } from "@/lib/useApi";
 import { useState, useCallback } from "react";
 
@@ -83,6 +84,7 @@ function daysLeftInMonth(): number {
 export default function DashboardPage() {
   const [showAdd, setShowAdd] = useState(false);
   const [showAddIncome, setShowAddIncome] = useState(false);
+  const [showEditBudget, setShowEditBudget] = useState(false);
   const {
     data: budget,
     loading: budgetLoading,
@@ -104,11 +106,11 @@ export default function DashboardPage() {
     refetchProfile();
   }, [refetchTx, refetchBudget, refetchProfile]);
 
-  const pct = budget?.overall?.pct ?? 0;
-  const remaining = budget?.overall?.remaining ?? 0;
-  const spent = budget?.overall?.spent ?? 0;
-  const limit = budget?.overall?.limit ?? 0;
-  const totalIncome = budget?.total_income ?? 0;
+  const pct = Number(budget?.overall?.pct ?? 0);
+  const remaining = Number(budget?.overall?.remaining ?? 0);
+  const spent = Number(budget?.overall?.spent ?? 0);
+  const limit = Number(budget?.overall?.limit ?? 0);
+  const totalIncome = Number(budget?.total_income ?? 0);
   const isAutoIncome = budget?.is_auto_income ?? true;
   const daysLeft = daysLeftInMonth();
   const streak = profile?.streak ?? 0;
@@ -150,7 +152,7 @@ export default function DashboardPage() {
             </button>
           </div>
         ) : limit === 0 ? (
-          <div style={{ padding: "1rem 0" }}>
+          <div style={{ padding: "0.5rem 0" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "var(--charcoal-grey)" }}>
               <AlertCircle size={16} />
               <p style={{ fontFamily: "var(--font-display)", fontWeight: 700 }}>
@@ -158,9 +160,17 @@ export default function DashboardPage() {
               </p>
             </div>
             <p className="caption" style={{ marginTop: "0.25rem", marginBottom: "1rem" }}>
-              Go to the Budgets tab to set your monthly spending limit.
+              Set your monthly spending limit to track balance and daily safe spend.
             </p>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "0.5rem", marginTop: "1rem", borderTop: "2px dashed var(--charcoal-grey)", paddingTop: "1rem" }}>
+            <button
+              className="btn btn-primary"
+              style={{ width: "100%", marginBottom: "1rem" }}
+              onClick={() => setShowEditBudget(true)}
+              id="btn-set-budget"
+            >
+              + Set Monthly Budget Limit
+            </button>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "0.5rem", borderTop: "2px dashed var(--charcoal-grey)", paddingTop: "0.75rem" }}>
               <div>
                 <p className="caption">Monthly Income</p>
                 <p style={{ fontFamily: "var(--font-mono)", fontWeight: 700 }}>₹{Math.round(totalIncome).toLocaleString("en-IN")}</p>
@@ -169,7 +179,30 @@ export default function DashboardPage() {
           </div>
         ) : (
           <>
-            <p className="caption" style={{ marginBottom: "0.25rem" }}>BALANCE LEFT THIS MONTH</p>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.25rem" }}>
+              <p className="caption">BALANCE LEFT THIS MONTH</p>
+              <button
+                onClick={() => setShowEditBudget(true)}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "var(--charcoal-grey)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  cursor: "pointer",
+                  fontSize: "0.75rem",
+                  fontFamily: "var(--font-display)",
+                  fontWeight: 700,
+                  padding: "2px 6px",
+                  borderRadius: "4px",
+                }}
+                title="Edit Budget Limit"
+              >
+                <Edit3 size={13} />
+                Edit Budget
+              </button>
+            </div>
             <p
               className="text-display"
               style={{ fontFamily: "var(--font-display)", lineHeight: 1, marginBottom: "0.5rem" }}
@@ -190,7 +223,7 @@ export default function DashboardPage() {
             <div className="progress-track" style={{ marginBottom: "1rem" }}>
               <div className={barClass} style={{ width: `${Math.min(pct, 100)}%` }} />
             </div>
-            
+
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0.5rem", marginTop: "1rem", borderTop: "2px dashed var(--charcoal-grey)", paddingTop: "1rem" }}>
               <div>
                 <p className="caption">Income</p>
@@ -318,6 +351,15 @@ export default function DashboardPage() {
       {showAddIncome && (
         <AddIncomeModal
           onClose={() => setShowAddIncome(false)}
+          onSuccess={handleExpenseSuccess}
+        />
+      )}
+
+      {/* ── Edit Budget Modal ── */}
+      {showEditBudget && budget && (
+        <EditBudgetModal
+          budgetStatus={budget}
+          onClose={() => setShowEditBudget(false)}
           onSuccess={handleExpenseSuccess}
         />
       )}

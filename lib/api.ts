@@ -12,10 +12,14 @@ import { authClient } from "./auth-client";
 // ── In-memory JWT cache ────────────────────────────────────────────────
 let cachedToken: string | null = null;
 let tokenExpiresAt = 0; // epoch ms
+// Shared in-flight promise — prevents concurrent calls from each firing their
+// own /api/auth/token request. All callers await the same single fetch.
+let inflightTokenRequest: Promise<string | null> | null = null;
 
 /**
  * Retrieve a valid JWT from the Better Auth server.
  * Caches the token in memory and refreshes it 60 seconds before expiry.
+ * Deduplicates concurrent calls so only one network request is ever in-flight.
  */
 async function getJwt(): Promise<string | null> {
   const now = Date.now();
@@ -25,33 +29,44 @@ async function getJwt(): Promise<string | null> {
     return cachedToken;
   }
 
-  try {
-    // authClient.token() calls /api/auth/token which returns a fresh JWT
-    const res = await authClient.token();
-
-    if (res.data?.token) {
-      cachedToken = res.data.token;
-
-      // Decode the JWT payload to read the exp claim (base64url → JSON)
-      try {
-        const payloadB64 = cachedToken.split(".")[1];
-        const payload = JSON.parse(atob(payloadB64));
-        tokenExpiresAt = (payload.exp ?? 0) * 1000;
-      } catch {
-        // If we can't parse exp, cache for 50 minutes (conservative for 1h tokens)
-        tokenExpiresAt = now + 50 * 60 * 1000;
-      }
-
-      return cachedToken;
-    }
-  } catch {
-    // Token retrieval failed — user is likely not authenticated
+  // If a fetch is already in-flight, share it instead of firing a new one
+  if (inflightTokenRequest) {
+    return inflightTokenRequest;
   }
 
-  // Clear stale cache
-  cachedToken = null;
-  tokenExpiresAt = 0;
-  return null;
+  inflightTokenRequest = (async () => {
+    try {
+      const res = await authClient.token();
+
+      if (res.data?.token) {
+        cachedToken = res.data.token;
+
+        // Decode the JWT payload to read the exp claim (base64url → JSON)
+        try {
+          const payloadB64 = cachedToken.split(".")[1];
+          const payload = JSON.parse(atob(payloadB64));
+          tokenExpiresAt = (payload.exp ?? 0) * 1000;
+        } catch {
+          // If we can't parse exp, cache for 50 minutes (conservative for 1h tokens)
+          tokenExpiresAt = now + 50 * 60 * 1000;
+        }
+
+        return cachedToken;
+      }
+    } catch {
+      // Token retrieval failed — user is likely not authenticated
+    }
+
+    // Clear stale cache
+    cachedToken = null;
+    tokenExpiresAt = 0;
+    return null;
+  })().finally(() => {
+    // Always clear the in-flight reference so future calls work normally
+    inflightTokenRequest = null;
+  });
+
+  return inflightTokenRequest;
 }
 
 /**
