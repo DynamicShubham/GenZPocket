@@ -102,10 +102,21 @@ app.include_router(incomes_router)
 # ── Health check ───────────────────────────────────────────────────────────────
 @app.get("/health", tags=["Health"])
 async def health_check():
+    redis_status = "unknown"
+    try:
+        redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+        client = aioredis.from_url(redis_url)
+        await client.ping()
+        redis_status = "connected"
+        await client.close()
+    except Exception as e:
+        redis_status = f"disconnected ({str(e)})"
+
     return {
         "status": "healthy",
         "app": "GenZPocket API",
         "version": "1.0.0",
+        "redis": redis_status
     }
 
 
