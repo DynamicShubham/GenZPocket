@@ -9,7 +9,7 @@ threshold per budget month).
 from datetime import date, datetime
 from decimal import Decimal
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, text, and_
+from sqlalchemy import select, func, and_
 from models import Budget, Expense, Notification, NotificationType, ExpenseCategory
 
 
@@ -34,7 +34,7 @@ async def check_budget_alerts(user_id: str, db: AsyncSession) -> None:
 
     # ── 2. Sum all expenses this month ────────────────────────────────────────
     rows = await db.execute(
-        select(Expense.category, text("SUM(amount) as total"))
+        select(Expense.category, func.sum(Expense.amount).label("total"))
         .where(
             Expense.user_id == user_id,
             Expense.date >= month_start,
@@ -43,7 +43,7 @@ async def check_budget_alerts(user_id: str, db: AsyncSession) -> None:
         .group_by(Expense.category)
     )
     category_totals: dict[str, Decimal] = {
-        row.category: Decimal(str(row.total)) for row in rows.fetchall()
+        row[0]: Decimal(str(row[1] or 0)) for row in rows.fetchall()
     }
     overall_spent = sum(category_totals.values(), Decimal("0"))
 

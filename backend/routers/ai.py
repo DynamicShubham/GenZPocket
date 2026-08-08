@@ -19,7 +19,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi_limiter.depends import RateLimiter
 from pyrate_limiter import Limiter, Rate, Duration
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, text
+from sqlalchemy import select, func
 from openai import AsyncOpenAI
 
 from database import get_db
@@ -58,7 +58,7 @@ async def _get_user_context(user_id: str, db: AsyncSession) -> str:
 
     # Current month spending by category
     rows = await db.execute(
-        select(Expense.category, text("SUM(amount) as total"))
+        select(Expense.category, func.sum(Expense.amount).label("total"))
         .where(
             Expense.user_id == user_id,
             Expense.date >= month_start,
@@ -66,7 +66,7 @@ async def _get_user_context(user_id: str, db: AsyncSession) -> str:
         )
         .group_by(Expense.category)
     )
-    category_totals = {row.category: float(row.total) for row in rows.fetchall()}
+    category_totals = {row[0]: float(row[1] or 0) for row in rows.fetchall()}
     total_spent = sum(category_totals.values())
 
     # Budget
@@ -207,15 +207,15 @@ async def get_insights(
 
     # This month category totals
     rows = await db.execute(
-        select(Expense.category, text("SUM(amount) as total"))
+        select(Expense.category, func.sum(Expense.amount).label("total"))
         .where(Expense.user_id == user_id, Expense.date >= month_start, Expense.date <= today)
         .group_by(Expense.category)
     )
-    this_month = {r.category: float(r.total) for r in rows.fetchall()}
+    this_month = {r[0]: float(r[1] or 0) for r in rows.fetchall()}
 
     # Last month category totals
-    rows2 = await db.execute(
-        select(Expense.category, text("SUM(amount) as total"))
+    rows_prev = await db.execute(
+        select(Expense.category, func.sum(Expense.amount).label("total"))
         .where(
             Expense.user_id == user_id,
             Expense.date >= last_month_start,
@@ -223,7 +223,7 @@ async def get_insights(
         )
         .group_by(Expense.category)
     )
-    last_month = {r.category: float(r.total) for r in rows2.fetchall()}
+    last_month = {r[0]: float(r[1] or 0) for r in rows_prev.fetchall()}
 
     insights: list[SpendingInsight] = []
 
@@ -289,13 +289,13 @@ async def affordability_check(
 
     # Total spent this month
     spent_result = await db.execute(
-        text(
-            "SELECT COALESCE(SUM(amount), 0) as total FROM expenses WHERE user_id = :uid AND date >= :start AND date <= :today"
-        ),
-        {"uid": user_id, "start": month_start.isoformat(), "today": today.isoformat()},
+        select(func.sum(Expense.amount)).where(
+            Expense.user_id == user_id,
+            Expense.date >= month_start,
+            Expense.date <= today,
+        )
     )
-    spent_row = spent_result.fetchone()
-    total_spent = float(spent_row.total) if spent_row is not None else 0.0
+    total_spent = float(spent_result.scalar_one_or_none() or 0.0)
     remaining = float(cast(Decimal, budget.overall_limit)) - total_spent
 
     # Days logic

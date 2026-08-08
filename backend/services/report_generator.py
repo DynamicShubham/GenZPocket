@@ -25,7 +25,7 @@ async def generate_monthly_report(user_id: str, db: AsyncSession) -> MonthlyRepo
 
     # ── Expenses this month ───────────────────────────────────────────────────
     rows = await db.execute(
-        select(Expense.category, text("SUM(amount) as total"))
+        select(Expense.category, func.sum(Expense.amount).label("total"))
         .where(
             Expense.user_id == user_id,
             Expense.date >= month_start,
@@ -33,7 +33,7 @@ async def generate_monthly_report(user_id: str, db: AsyncSession) -> MonthlyRepo
         )
         .group_by(Expense.category)
     )
-    category_totals: dict[str, float] = {r.category: float(r.total) for r in rows.fetchall()}
+    category_totals: dict[str, float] = {r[0]: float(r[1] or 0) for r in rows.fetchall()}
     total_expenses = sum(category_totals.values())
 
     # ── Distinct logging days (consistency) ───────────────────────────────────

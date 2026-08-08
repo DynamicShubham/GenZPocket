@@ -10,7 +10,14 @@ import {
   User,
 } from "lucide-react";
 
-const NAV_ITEMS = [
+interface NavItem {
+  href: string;
+  label: string;
+  icon: typeof Home;
+  isAction?: boolean;
+}
+
+const NAV_ITEMS: NavItem[] = [
   { href: "/dashboard", label: "Home",      icon: Home },
   { href: "/budgets",   label: "Budgets",   icon: Wallet },
   { href: "/analytics", label: "Analytics", icon: BarChart2 },
